@@ -975,7 +975,7 @@ function renderEmails(emails){
     const sub=h('Subject')||'(sem assunto)';
     const dt=new Date(parseInt(e.internalDate)).toLocaleDateString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const unr=e.labelIds?.includes('UNREAD'),str=e.labelIds?.includes('STARRED');
-    return `<div class="eitem ${unr?'unread':''}" onclick="openEmail('${e.id}',this)" ontouchend="event.preventDefault();openEmail('${e.id}',this)">
+    return `<div class="eitem ${unr?'unread':''}" onclick="openEmail('${e.id}',this)" ontouchstart="touchStart(event)" ontouchend="touchEnd(event,()=>openEmail('${e.id}',this))">
       <div style="display:flex;justify-content:space-between"><span class="efrom">${esc(fr)}</span><span class="edate">${dt}</span></div>
       <div class="esubj">${str?'⭐ ':''}${esc(sub)}</div>
       <div class="esnip">${esc(e.snippet||'')}</div>
@@ -1742,6 +1742,20 @@ function adjustEmailWidth(delta){
   document.addEventListener('mouseup', stopDrag);
   document.addEventListener('touchend', stopDrag);
 })();
+
+
+  // Touch scroll vs tap detection
+  let _tsy=0, _tsx=0, _tmoved=false;
+  function touchStart(e){
+    _tsy=e.touches[0].clientY;
+    _tsx=e.touches[0].clientX;
+    _tmoved=false;
+  }
+  function touchEnd(e,fn){
+    const dy=Math.abs(e.changedTouches[0].clientY-_tsy);
+    const dx=Math.abs(e.changedTouches[0].clientX-_tsx);
+    if(dy<8 && dx<8){ fn(); } // only open if barely moved (tap)
+  }
 
 </script>
 
