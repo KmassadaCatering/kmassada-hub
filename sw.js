@@ -1,37 +1,28 @@
-// Kmassada Hub Service Worker - v02/03 11:54 - NETWORK FIRST
-const CACHE_NAME = 'kmassada-hub-v202603021154';
+// Kmassada Hub Service Worker - v02/03 12:10 - NETWORK FIRST + AUTO UPDATE
+const CACHE_NAME = 'kmassada-hub-v202603021210';
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Activate immediately
+  self.skipWaiting(); // Activate immediately, replacing old SW
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(key => caches.delete(key)))
-    ).then(() => self.clients.claim())
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(key => caches.delete(key)))
+    ).then(() => self.clients.claim()) // Take control of all open pages
   );
 });
 
 // NETWORK FIRST - always try network, fallback to cache
 self.addEventListener('fetch', event => {
-  // Skip non-GET and cross-origin requests
-  if (event.request.method !== 'GET') return;
-  if (!event.request.url.startsWith(self.location.origin)) return;
-
+  if(event.request.method !== 'GET') return;
   event.respondWith(
     fetch(event.request)
-      .then(response => {
-        // Cache the fresh response
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
-        }
-        return response;
+      .then(resp => {
+        const clone = resp.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+        return resp;
       })
-      .catch(() => {
-        // Network failed - try cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(event.request))
   );
 });
