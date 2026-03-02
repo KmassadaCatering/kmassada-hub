@@ -205,8 +205,9 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:16px;backgr
 [data-layout="mobile"] #app { grid-template-columns: 1fr !important; }
 [data-layout="mobile"] .elayout { flex-direction: column !important; }
 [data-layout="mobile"] .elist-panel { width: 100% !important; }
+[data-layout="mobile"] .elist.mob-hidden { display: none !important; }
 [data-layout="mobile"] .edetail { display: none !important; flex-direction: column; }
-[data-layout="mobile"] .edetail.mob-open { display: flex !important; flex-direction: column !important; flex:1; overflow-y:auto; }
+[data-layout="mobile"] .edetail.mob-open { display: flex !important; flex-direction: column !important; position:fixed !important; inset:0 !important; z-index:500 !important; background:var(--bg) !important; overflow-y:auto !important; padding:12px !important; }
 [data-layout="mobile"] .elist-panel.mob-hidden { display: none !important; }
 [data-layout="mobile"] .elist { width: 100% !important; }
 [data-layout="mobile"] .elist { border-right: none !important; }
@@ -889,7 +890,7 @@ async function openEmail(id,el){
   const isMob = document.documentElement.getAttribute('data-layout')==='mobile';
   if(isMob){
     p.classList.add('mob-open');
-    const elist = document.querySelector('.elist-panel');
+    const elist = document.querySelector('.elist');
     if(elist) elist.classList.add('mob-hidden');
   }
   p.innerHTML='<div class="loading"><div class="spin"></div> A abrir...</div>';
@@ -1159,7 +1160,7 @@ function closeRepair(){ document.getElementById('repairModal').classList.remove(
 function repairSoft(){
   // Reset all state without reloading
   try {
-    ge('edetail')?.classList.remove('mob-open','open');
+    ge('edetail')?.classList.remove('mob-open','open'); document.querySelector('.elist')?.classList.remove('mob-hidden');
     document.querySelector('.elist-panel')?.classList.remove('mob-hidden');
     ge('sidebar')?.classList.remove('sb-open','collapsed');
     document.querySelector('.overlay')?.classList.remove('show');
@@ -1295,7 +1296,7 @@ function closeRepair(){ document.getElementById('repairModal').classList.remove(
 function repairSoft(){
   // Reset all state without reloading
   try {
-    ge('edetail')?.classList.remove('mob-open','open');
+    ge('edetail')?.classList.remove('mob-open','open'); document.querySelector('.elist')?.classList.remove('mob-hidden');
     document.querySelector('.elist-panel')?.classList.remove('mob-hidden');
     ge('sidebar')?.classList.remove('sb-open','collapsed');
     document.querySelector('.overlay')?.classList.remove('show');
