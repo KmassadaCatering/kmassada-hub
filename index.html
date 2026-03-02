@@ -1022,6 +1022,25 @@ async function loadEmails(lbl){
 let selMode=false;
 let selIds=new Set();
 
+// Event delegation - one listener handles clicks on both PC and mobile
+function initElistListener(){
+  const container=ge('elist');
+  if(!container||container._selListener)return;
+  container._selListener=true;
+  container.addEventListener('click',function(ev){
+    if(!selMode)return;
+    const item=ev.target.closest('.eitem');
+    if(!item)return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    const id=item.dataset.id;
+    if(!id)return;
+    if(selIds.has(id)){selIds.delete(id);item.classList.remove('msel');}
+    else{selIds.add(id);item.classList.add('msel');}
+    updateBulkBar();
+  },true); // capture phase to intercept before inline onclick
+}
+
 function toggleSelMode(){
   selMode=!selMode;
   selIds.clear();
@@ -1033,20 +1052,16 @@ function toggleSelMode(){
     btn.textContent=selMode?'✕ Cancelar':'☑ Selecionar';
   }
   if(bar){bar.classList.toggle('show',selMode);}
-  if(list){list.classList.toggle('selmode',selMode);}
+  if(list){
+    list.classList.toggle('selmode',selMode);
+    initElistListener();
+  }
   document.querySelectorAll('.eitem.msel').forEach(e=>e.classList.remove('msel'));
   updateBulkBar();
 }
 
 function eitemClick(id,el){
-  if(selMode){
-    el=el||document.querySelector('.eitem[data-id="'+id+'"]');
-    if(!el)return;
-    if(selIds.has(id)){selIds.delete(id);el.classList.remove('msel');}
-    else{selIds.add(id);el.classList.add('msel');}
-    updateBulkBar();
-    return;
-  }
+  if(selMode)return; // handled by delegation listener
   openEmail(id,el);
 }
 
@@ -1114,6 +1129,7 @@ function renderEmails(emails){
       </div>
     </div>`;
   }).join('');
+  initElistListener();
 }
 function closeEmailDetail(){
   const d=ge('edetail');
