@@ -1371,13 +1371,9 @@ window.addEventListener('appinstalled', () => {
 
 window.addEventListener('load', () => { setTimeout(updateInstallBtn, 1200); });
 
-async function installApp(){
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    const {outcome} = await deferredPrompt.userChoice;
-    if(outcome==='accepted'){ deferredPrompt=null; toast('✅ A instalar...','ok'); }
-    return;
-  }
+async async function installApp(){
+  // Always show guide with all device options
+  // If Chrome can install natively, offer that option too at the top
   showInstallGuide();
 }
 
@@ -1385,19 +1381,15 @@ function showInstallGuide(forceTab){
   const ua = navigator.userAgent;
   const isAndroid = /Android/.test(ua);
   const isIOS = /iPad|iPhone|iPod/.test(ua);
-  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua) && !/OPR/.test(ua);
-  const isEdge = /Edg/.test(ua);
-  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
   const APP_URL = 'https://kmassadacatering.github.io/kmassada-hub/';
-  const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(APP_URL)}`;
+  const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(APP_URL)}`;
 
-  // Auto-detect default tab
   let defaultTab = forceTab || (isAndroid ? 'android' : isIOS ? 'ios' : 'pc');
 
   const tabs = [
-    { id:'pc',      icon:'🖥️', label:'Windows PC' },
+    { id:'pc',      icon:'🖥️', label:'Windows' },
     { id:'android', icon:'🤖', label:'Android' },
-    { id:'ios',     icon:'🍎', label:'iPhone/iPad' },
+    { id:'ios',     icon:'🍎', label:'iPhone' },
     { id:'qr',      icon:'📷', label:'QR Code' },
   ];
 
@@ -1406,149 +1398,88 @@ function showInstallGuide(forceTab){
       <li>Clica nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
       <li>Clica em <strong>"Instalar Kmassada Hub..."</strong></li>
       <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Também podes ver o ícone <strong>⊕</strong> na barra de endereços</p>
-      <p style="margin-top:6px;font-size:13px;opacity:0.7">No <strong>Edge</strong>: Menu ··· → Aplicações → "Instalar este site como aplicação"</p>`,
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Podes também ver o ícone <strong>⊕</strong> na barra de endereços</p>
+      <p style="margin-top:6px;font-size:13px;opacity:0.7">No <strong>Edge</strong>: Menu ··· → Apps → "Instalar este site como app"</p>`,
     android: `<p>No <strong>Chrome Android</strong>:</p><ol>
-      <li>Abre o link: <a href="${APP_URL}" target="_blank" style="color:var(--primary)">${APP_URL}</a></li>
-      <li>Toca nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
+      <li>Abre o <a href="${APP_URL}" target="_blank" style="color:var(--primary)">link no Chrome</a> ou usa o QR Code</li>
+      <li>Toca nos <strong>três pontinhos ⋮</strong></li>
       <li>Toca em <strong>"Adicionar ao ecrã inicial"</strong> ou <strong>"Instalar app"</strong></li>
       <li>Confirma tocando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Usa o separador QR Code para abrir diretamente no telemóvel</p>`,
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Usa o separador <strong>📷 QR Code</strong> para abrir rapidamente no telemóvel!</p>`,
     ios: `<p>No <strong>Safari</strong> (iPhone/iPad):</p><ol>
-      <li>Abre o link no Safari: <a href="${APP_URL}" target="_blank" style="color:var(--primary)">${APP_URL}</a></li>
-      <li>Toca no botão <strong>Partilhar</strong> 🔗 (em baixo)</li>
-      <li>Desliza → toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
-      <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>`,
-    qr: `<p style="text-align:center">Aponta a câmara do telemóvel para o QR Code:</p>
-      <div style="text-align:center;margin:16px 0">
-        <img src="${QR_URL}" alt="QR Code" style="border-radius:10px;border:3px solid var(--primary);width:200px;height:200px">
+      <li>Abre o link no Safari (não Chrome)</li>
+      <li>Toca no botão <strong>Partilhar 🔗</strong> (em baixo no ecrã)</li>
+      <li>Desliza e toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
+      <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">⚠️ No iPhone tem de ser o Safari — o Chrome não permite instalar no iOS</p>`,
+    qr: `<p style="text-align:center;margin-bottom:8px">Aponta a câmara do telemóvel para instalar:</p>
+      <div style="text-align:center;margin:12px 0">
+        <img src="${QR_URL}" alt="QR Code" style="border-radius:12px;border:3px solid var(--primary);width:220px;height:220px">
       </div>
-      <p style="text-align:center;font-size:13px;opacity:0.7">Depois de abrir no telemóvel, segue as instruções do separador <strong>Android</strong> ou <strong>iPhone</strong></p>
+      <p style="text-align:center;font-size:13px;opacity:0.7">Abre o link no Chrome → toca ⋮ → "Adicionar ao ecrã inicial"</p>
       <p style="text-align:center;margin-top:8px"><a href="${APP_URL}" target="_blank" style="color:var(--primary);font-size:13px">${APP_URL}</a></p>`,
   };
 
-  let m = document.getElementById('installGuideModal');
-  if(!m){ m=document.createElement('div'); m.id='installGuideModal';
-    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
-    document.body.appendChild(m); }
-
-  function renderModal(activeTab){
-    const tabsHtml = tabs.map(t=>`
-      <button onclick="document.getElementById('installGuideModal').querySelector('.ig-body').innerHTML=\`${content[t.id].replace(/`/g,"'")}\`;document.querySelectorAll('.ig-tab').forEach(x=>x.style.fontWeight='normal');this.style.fontWeight='bold';this.style.borderBottom='3px solid var(--primary)'"
-        class="ig-tab" style="background:none;border:none;border-bottom:${activeTab===t.id?'3px solid var(--primary)':'3px solid transparent'};padding:8px 10px;cursor:pointer;font-size:14px;font-weight:${activeTab===t.id?'bold':'normal'};color:var(--text)">${t.icon} ${t.label}</button>
-    `).join('');
-    m.innerHTML=`<div style="background:var(--bg);border-radius:14px;padding:26px;max-width:460px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.35)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <strong style="font-size:17px">📲 Instalar Kmassada Hub</strong>
-        <button onclick="document.getElementById('installGuideModal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;line-height:1">×</button>
+  // Build native install button if Chrome supports it
+  const nativeBtn = deferredPrompt ? `
+    <div style="background:var(--primary);color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="doNativeInstall()">
+      <span style="font-size:22px">⬇️</span>
+      <div>
+        <div style="font-weight:700;font-size:16px">Instalar neste dispositivo agora</div>
+        <div style="font-size:12px;opacity:0.85">Chrome detetou que pode instalar diretamente</div>
       </div>
-      <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap">${tabsHtml}</div>
-      <div class="ig-body" style="font-size:15px;line-height:1.7">${content[activeTab]}</div>
+    </div>` : '';
+
+  const tabsHTML = tabs.map(t => `
+    <button onclick="switchInstallTab('${t.id}')" id="itab-${t.id}"
+      style="flex:1;padding:8px 4px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;
+             background:${t.id===defaultTab?'var(--primary)':'transparent'};
+             color:${t.id===defaultTab?'#fff':'inherit'};opacity:${t.id===defaultTab?'1':'0.6'}">
+      ${t.icon}<br><span style="font-size:11px">${t.label}</span>
+    </button>`).join('');
+
+  const modalHTML = `
+    <div id="install-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()">
+      <div style="background:var(--bg);border-radius:16px;padding:20px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-size:18px;font-weight:700">📲 Instalar Kmassada Hub</div>
+          <button onclick="document.getElementById('install-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.6;line-height:1">×</button>
+        </div>
+        ${nativeBtn}
+        <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--sidebar-bg,rgba(0,0,0,0.05));border-radius:10px;padding:6px">
+          ${tabsHTML}
+        </div>
+        <div id="install-tab-content" style="font-size:14px;line-height:1.6">
+          ${content[defaultTab]}
+        </div>
+      </div>
     </div>`;
-  }
-  renderModal(defaultTab);
-  // Re-wire tab clicks properly
-  m.querySelectorAll('.ig-tab').forEach((btn, i)=>{
-    btn.onclick = ()=>{
-      renderModal(tabs[i].id);
-      // re-wire again after re-render
-      m.querySelectorAll('.ig-tab').forEach((b2,j)=>{ b2.onclick=()=>{ renderModal(tabs[j].id); m.querySelectorAll('.ig-tab').forEach((b3,k)=>b3.onclick=()=>renderModal(tabs[k].id)); }; });
-    };
-  });
-  let m = document.getElementById('installGuideModal');
-  if(!m){ m=document.createElement('div'); m.id='installGuideModal';
-    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-    document.body.appendChild(m); }
-  m.innerHTML=`<div style="background:var(--bg);border-radius:14px;padding:26px;max-width:440px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.35)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <h3 style="margin:0;font-size:19px">📲 Instalar Kmassada Hub</h3>
-      <button onclick="document.getElementById('installGuideModal').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);line-height:1">✕</button>
-    </div>
-    <div style="line-height:1.8;font-size:15px">${steps}</div>
-    <div style="margin-top:22px;display:flex;gap:8px">
-      <a href="https://kmassadacatering.github.io/kmassada-hub/" target="_blank"
-        style="flex:1;text-align:center;background:var(--primary);color:#fff;padding:11px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">🌐 Abrir no Chrome</a>
-      <button onclick="document.getElementById('installGuideModal').remove()"
-        style="flex:1;background:var(--hover);border:none;border-radius:8px;padding:11px;cursor:pointer;font-size:14px;font-weight:600;color:var(--txt)">Fechar</button>
-    </div>
-  </div>`;
-  m.style.display='flex';
-  m.onclick=(e)=>{ if(e.target===m) m.remove(); };
+
+  // Store content for tab switching
+  window._installContent = content;
+
+  document.getElementById('install-modal')?.remove();
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
-// === EMAIL PANEL RESIZER ===
-(function(){
-  const resizer = document.getElementById('eresizer');
-  if(!resizer) return;
-  
-  let startX, startW, dragging = false;
-  
-  function getElist(){ return document.getElementById('elist'); }
-  function getLayout(){ return document.body.dataset.layout || 'pc'; }
-  
-  function startResize(e){
-    if(getLayout() !== 'pc') return;
-    dragging = true;
-    startX = e.touches ? e.touches[0].clientX : e.clientX;
-    startW = getElist().offsetWidth;
-    resizer.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-    e.preventDefault();
-  }
-  
-  function doResize(e){
-    if(!dragging) return;
-    const x = e.touches ? e.touches[0].clientX : e.clientX;
-    const newW = Math.max(200, Math.min(600, startW + (x - startX)));
-    getElist().style.width = newW + 'px';
-    const val = document.getElementById('ewidthval');
-    if(val) val.textContent = Math.round(newW) + 'px';
-  }
-  
-  function stopResize(){
-    if(!dragging) return;
-    dragging = false;
-    resizer.classList.remove('dragging');
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-    const w = getElist().offsetWidth;
-    localStorage.setItem('emailListWidth', w);
-  }
-  
-  resizer.addEventListener('mousedown', startResize);
-  resizer.addEventListener('touchstart', startResize, {passive:false});
-  document.addEventListener('mousemove', doResize);
-  document.addEventListener('touchmove', doResize, {passive:false});
-  document.addEventListener('mouseup', stopResize);
-  document.addEventListener('touchend', stopResize);
-  
-  // Restore saved width
-  const saved = localStorage.getItem('emailListWidth');
-  if(saved) {
-    const el = getElist();
-    if(el) el.style.width = saved + 'px';
-    const val = document.getElementById('ewidthval');
-    if(val) val.textContent = Math.round(saved) + 'px';
-  }
-  
-  // Show width buttons only on PC
-  function checkLayout(){
-    const btns = document.getElementById('ewidthbtns');
-    const res = document.getElementById('eresizer');
-    if(!btns || !res) return;
-    const isMob = getLayout() === 'mobile';
-    btns.style.display = isMob ? 'none' : 'flex';
-    res.style.display = isMob ? 'none' : '';
-  }
-  
-  // Watch layout changes
-  const obs = new MutationObserver(checkLayout);
-  obs.observe(document.body, {attributes:true, attributeFilter:['data-layout']});
-  window.addEventListener('load', checkLayout);
-  setTimeout(checkLayout, 500);
-})();
+async function doNativeInstall(){
+  if(!deferredPrompt) return;
+  document.getElementById('install-modal')?.remove();
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  if(outcome==='accepted'){ deferredPrompt=null; toast('✅ App instalada!','ok'); document.getElementById('installBtn').style.display='none'; }
+}
+
+function switchInstallTab(id){
+  document.querySelectorAll('[id^="itab-"]').forEach(b=>{
+    const active = b.id === 'itab-'+id;
+    b.style.background = active ? 'var(--primary)' : 'transparent';
+    b.style.color = active ? '#fff' : 'inherit';
+    b.style.opacity = active ? '1' : '0.6';
+  });
+  document.getElementById('install-tab-content').innerHTML = window._installContent[id];
+}
+
 
 function adjustEmailWidth(delta){
   const el = document.getElementById('elist');
