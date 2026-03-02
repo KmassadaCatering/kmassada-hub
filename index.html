@@ -1358,6 +1358,7 @@ function renderDrive(){
         <td style="padding:9px;color:var(--text2)">${dt}</td>
         <td style="padding:9px"><div style="display:flex;gap:4px">
           ${f.webViewLink?`<a href="${f.webViewLink}" target="_blank" class="btn bs bsm bico" onclick="event.stopPropagation()" title="Abrir">↗️</a>`:''}
+          ${!iF?`<button class="btn bs bsm bico" onclick="event.stopPropagation();dlDrive('${f.id}','${esc(f.name).replace(/'/g,"\\'")}','${f.mimeType}')" title="Descarregar">⬇️</button>`:''}
           <button class="btn bs bsm bico" onclick="event.stopPropagation();openRename('${f.id}','${esc(f.name).replace(/'/g,"\\'")}')" title="Renomear">✏️</button>
           <button class="btn bd bsm bico" onclick="event.stopPropagation();delDrive('${f.id}','${esc(f.name).replace(/'/g,"\\'")}')" title="Apagar">🗑️</button>
         </div></td>
@@ -1366,6 +1367,7 @@ function renderDrive(){
     c.innerHTML=`<div class="dgrid">${dItems.map(f=>{const iF=f.mimeType==='application/vnd.google-apps.folder';const cl=iF?`navDrive('${f.id}','${esc(f.name)}')`:`window.open('${f.webViewLink||'https://drive.google.com/file/d/'+f.id+'/view'}','_blank')`;
     return`<div class="dcard" onclick="${cl}">
       <div class="dacts">
+        ${!iF?`<button class="btn bs bsm bico" onclick="event.stopPropagation();dlDrive('${f.id}','${esc(f.name).replace(/'/g,"\\'")}','${f.mimeType}')" title="Descarregar">⬇️</button>`:''}
         <button class="btn bs bsm bico" onclick="event.stopPropagation();openRename('${f.id}','${esc(f.name).replace(/'/g,"\\'")}')" title="Renomear">✏️</button>
         <button class="btn bd bsm bico" onclick="event.stopPropagation();delDrive('${f.id}','${esc(f.name).replace(/'/g,"\\'")}')" title="Apagar">🗑️</button>
       </div>
@@ -1374,6 +1376,30 @@ function renderDrive(){
       <div class="dmeta">${f.modifiedTime?new Date(f.modifiedTime).toLocaleDateString('pt-PT'):''}</div>
     </div>`;}).join('')}</div>`;
   }
+}
+
+async function dlDrive(id,name,mimeType){
+  toast('⬇️ A preparar download...');
+  try{
+    let url,dlName=name;
+    if(mimeType.includes('vnd.google-apps')){
+      let em='application/pdf',ext='.pdf';
+      if(mimeType.includes('spreadsheet')){em='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';ext='.xlsx';}
+      else if(mimeType.includes('document')){em='application/vnd.openxmlformats-officedocument.wordprocessingml.document';ext='.docx';}
+      else if(mimeType.includes('presentation')){em='application/vnd.openxmlformats-officedocument.presentationml.presentation';ext='.pptx';}
+      if(!dlName.match(/\.[a-z]{2,5}$/i))dlName+=ext;
+      url=`https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=${encodeURIComponent(em)}`;
+    }else{
+      url=`https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
+    }
+    const resp=await fetch(url,{headers:{Authorization:'Bearer '+tok}});
+    if(!resp.ok){toast('Erro '+resp.status,'err');return;}
+    const blob=await resp.blob();
+    const bUrl=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=bUrl;a.download=dlName;a.click();
+    setTimeout(()=>URL.revokeObjectURL(bUrl),5000);
+    toast('✅ Descarregado!');
+  }catch(e){toast('Erro: '+e.message,'err');}
 }
 async function delDrive(id,name){if(!confirm(`Apagar "${name}"?`))return;await api(`https://www.googleapis.com/drive/v3/files/${id}`,{method:'DELETE'});toast(`🗑️ "${name}" apagado`);loadDrive(curDF);}
 function openRename(id,name){ge('rname').value=name;ge('rid').value=id;openModal('m-rename');}
