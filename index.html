@@ -107,7 +107,7 @@ body{
 .ewidth-btns{display:flex;gap:4px;align-items:center;margin-left:8px}
 .ewidth-btn{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:var(--text);user-select:none}
 .ewidth-btn:hover{background:var(--primary);color:#fff}
-.emob-back{display:none;padding:16px 20px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;font-size:18px;border-bottom:3px solid rgba(0,0,0,0.2);letter-spacing:0.3px;box-shadow:0 3px 8px rgba(0,0,0,0.2);flex-shrink:0}
+.emob-back{display:none;padding:16px 20px;background:var(--primary);color:#fff;cursor:pointer;font-weight:700;font-size:18px;border-bottom:3px solid rgba(0,0,0,0.2);letter-spacing:0.3px;box-shadow:0 3px 8px rgba(0,0,0,0.2);width:100%;box-sizing:border-box}
 [data-layout="mobile"] .edetail.mob-open .emob-back{display:block !important}
 .eitem{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--tr);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
 .eitem:hover{background:var(--bg)}
@@ -241,7 +241,7 @@ body{
 [data-layout="mobile"] .elist-panel { width: 100% !important; }
 [data-layout="mobile"] .elist.mob-hidden { display: none !important; }
 [data-layout="mobile"] .edetail { display: none !important; flex-direction: column; }
-[data-layout="mobile"] .edetail.mob-open { display: flex !important; flex-direction: column !important; position:fixed !important; inset:0 !important; z-index:500 !important; background:var(--bg) !important; overflow-y:auto !important; padding:0 !important; -webkit-overflow-scrolling:touch !important; }
+[data-layout="mobile"] .edetail.mob-open { display: block !important; position:fixed !important; inset:0 !important; z-index:500 !important; background:var(--bg) !important; overflow-y:auto !important; -webkit-overflow-scrolling:touch !important; }
 [data-layout="mobile"] .elist-panel.mob-hidden { display: none !important; }
 [data-layout="mobile"] .elist { width: 100% !important; border-right: none !important; flex: 1 1 auto !important; min-height: 0 !important; overflow-y: auto !important; -webkit-overflow-scrolling: touch !important; }
 
