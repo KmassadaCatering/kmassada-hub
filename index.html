@@ -328,6 +328,26 @@ body{
 #mob-float-back{display:none;position:fixed;bottom:22px;right:22px;z-index:9999;background:var(--primary);color:#fff;border:none;border-radius:50px;padding:15px 22px;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.35);align-items:center;gap:8px;letter-spacing:0.2px;}
 #mob-float-back:active{transform:scale(0.96);}
 [data-layout="mobile"] #mob-float-back.show{display:flex !important;}
+
+/* Global back-to-email floating button */
+#global-back-btn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: linear-gradient(135deg,#c8860a,#f0b030);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 13px 22px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(200,134,10,.5);
+  letter-spacing: 0.3px;
+}
+#global-back-btn.visible { display: block; }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -964,6 +984,9 @@ function sv(view,param){
   }
   else if(view==='settings'){ge('n-cfg').classList.add('on');if(param)showSec(param,document.querySelector('.sni'));populateForms();}
   else if(view==='sys'){ge('n-sys').classList.add('on');}
+  // Show/hide global back button
+  const gbb=ge('global-back-btn');
+  if(gbb){if(view==='email')gbb.classList.remove('visible');else gbb.classList.add('visible');}
 }
 function showSec(id,el){
   document.querySelectorAll('.ssec').forEach(s=>s.classList.remove('on'));
@@ -1424,6 +1447,8 @@ function savePrinter(){
 function delPrinter(i){if(!confirm('Apagar impressora?'))return;cfg.printers.splice(i,1);saveCfg2();renderPrinters();toast('🗑️ Impressora removida');}
 function setPDefault(i){cfg.printers.forEach((p,j)=>p.isDefault=j===i);saveCfg2();renderPrinters();toast('✅ Impressora padrão definida');}
 function printTest(i){const p=cfg.printers[i];const w=window.open('','_blank','width=400,height=300');w.document.write(`<html><body style="font-family:sans-serif;padding:20px"><h3>Teste de Impressão</h3><p><strong>Impressora:</strong> ${p.name}</p><p><strong>Tipo:</strong> ${p.type==='a4'?'A4/Laser':'Térmica'}</p><p><strong>Kmassada Catering</strong></p><button onclick="window.print()">Imprimir</button>
+
+<button id="global-back-btn" onclick="sv('email','INBOX')">← Voltar</button>
 </body></html>`);w.document.close();}
 
 // SYSTEM
