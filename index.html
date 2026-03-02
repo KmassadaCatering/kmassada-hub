@@ -445,6 +445,7 @@ body{
   </div>
   <div class="dmain">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <button id="dback-top" class="btn bs bsm" onclick="drivGoBack()" style="display:none">← Voltar</button>
       <div class="bc" id="dbc"></div>
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="btn bs bsm" onclick="openFolderMod()">📁 Nova Pasta</button>
@@ -455,6 +456,7 @@ body{
       </div>
     </div>
     <div id="dcont"><div class="loading"><div class="spin"></div> A carregar...</div></div>
+    <button id="dback-bot" onclick="drivGoBack()" style="display:none;position:fixed;bottom:80px;right:20px;z-index:200;background:linear-gradient(135deg,#c8860a,#f0b030);color:#fff;border:none;border-radius:50px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(200,134,10,.5)">← Voltar</button>
   </div>
 </div>
 </div>
@@ -1254,7 +1256,18 @@ async function callGemini(prompt,cb){
 async function navDrive(fId,name){
   if(fId==='root')bcs=[{id:'root',name:'O Meu Drive'}];
   else{const ex=bcs.findIndex(b=>b.id===fId);if(ex>=0)bcs=bcs.slice(0,ex+1);else bcs.push({id:fId,name:name||fId});}
-  curDF=fId;renderBC();await loadDrive(fId);updateTree();
+  curDF=fId;renderBC();await loadDrive(fId);updateTree();updateDriveBackBtns();
+}
+function updateDriveBackBtns(){
+  const show=bcs.length>1;
+  const bt=ge('dback-top');const bb=ge('dback-bot');
+  if(bt)bt.style.display=show?'':'none';
+  if(bb)bb.style.display=show?'':'none';
+}
+function drivGoBack(){
+  if(bcs.length<=1)return;
+  const prev=bcs[bcs.length-2];
+  navDrive(prev.id,prev.name);
 }
 function renderBC(){
   ge('dbc').innerHTML=bcs.map((b,i)=>{
@@ -1264,9 +1277,17 @@ function renderBC(){
 }
 async function loadDrive(fId){
   const c=ge('dcont');c.innerHTML='<div class="loading"><div class="spin"></div> A carregar...</div>';
+  if(!tok){c.innerHTML='<div class="empty"><div class="eico">🔐</div><h3>Sessão expirada</h3><p>Faz refresh da página para re-entrar.</p></div>';return;}
   const q=encodeURIComponent(`'${fId}' in parents and trashed=false`);
-  const d=await api(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,size,modifiedTime,webViewLink)&orderBy=folder,name&pageSize=100`);
-  if(!d)return;dItems=d.files||[];renderDrive();
+  let resp;
+  try{
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,size,modifiedTime,webViewLink)&orderBy=folder,name&pageSize=100`,{headers:{Authorization:'Bearer '+tok}});
+    if(r.status===401){c.innerHTML='<div class="empty"><div class="eico">🔐</div><h3>Sessão expirada</h3><p>Faz refresh para re-entrar.</p></div>';return;}
+    if(r.status===403){c.innerHTML='<div class="empty"><div class="eico">⚠️</div><h3>Sem permissão de Drive</h3><p style="font-size:13px">Clica em "Reparar App" no menu Sistema para re-autorizar com permissão de Drive.</p></div>';return;}
+    resp=await r.json();
+  }catch(e){c.innerHTML='<div class="empty"><div class="eico">❌</div><h3>Erro de ligação</h3><p>'+e.message+'</p></div>';return;}
+  if(resp.error){c.innerHTML=`<div class="empty"><div class="eico">❌</div><h3>Erro</h3><p>${resp.error.message||'Erro desconhecido'}</p></div>`;return;}
+  dItems=resp.files||[];renderDrive();
 }
 function fIcon(m){if(!m)return'📄';if(m.includes('folder'))return'📁';if(m.includes('pdf'))return'📕';if(m.includes('sheet')||m.includes('excel'))return'📊';if(m.includes('document')||m.includes('word'))return'📝';if(m.includes('presentation'))return'📑';if(m.includes('image'))return'🖼️';if(m.includes('video'))return'🎥';if(m.includes('audio'))return'🎵';if(m.includes('zip'))return'📦';return'📄';}
 function renderDrive(){
