@@ -277,6 +277,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:16px;backgr
 .repair-btn.close-r{background:transparent;color:var(--text-sec);border:1px solid var(--border);}
 
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -711,21 +712,26 @@ let signInHint='geralkmassada@gmail.com';
 function signIn(){
   const btn=document.getElementById('login-btn');
   if(btn){btn.disabled=true;btn.style.opacity='0.75';}
-  const s=document.createElement('script');
-  s.src='https://accounts.google.com/gsi/client';
-  s.onload=()=>{
+  function doAuth(){
     tclient=google.accounts.oauth2.initTokenClient({
       client_id:CLIENT_ID,scope:SCOPES,
-      hint:signInHint,
+      login_hint:signInHint,
       callback:(r)=>{
         if(r.error){toast('Erro: '+r.error,'err');if(btn){btn.disabled=false;btn.style.opacity='1';}return;}
         tok=r.access_token;fetchUser();
       }
     });
     tclient.requestAccessToken({prompt:signInHint?'':'select_account'});
-  };
-  s.onerror=()=>{toast('Erro ao carregar Google Auth','err');if(btn){btn.disabled=false;btn.style.opacity='1';}};
-  document.head.appendChild(s);
+  }
+  if(typeof google!=='undefined'&&google.accounts){
+    doAuth();
+  } else {
+    const s=document.createElement('script');
+    s.src='https://accounts.google.com/gsi/client';
+    s.onload=doAuth;
+    s.onerror=()=>{toast('Erro ao carregar Google Auth','err');if(btn){btn.disabled=false;btn.style.opacity='1';}};
+    document.head.appendChild(s);
+  }
 }
 function signInOther(){
   signInHint='';
