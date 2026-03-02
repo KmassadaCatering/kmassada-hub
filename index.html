@@ -1379,29 +1379,24 @@ function renderDrive(){
   }
 }
 
-async function dlDrive(id,name,mimeType){
-  toast('⬇️ A preparar download...');
-  try{
-    let url,dlName=name;
-    if(mimeType.includes('vnd.google-apps')){
-      let em='application/pdf',ext='.pdf';
-      if(mimeType.includes('spreadsheet')){em='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';ext='.xlsx';}
-      else if(mimeType.includes('document')){em='application/vnd.openxmlformats-officedocument.wordprocessingml.document';ext='.docx';}
-      else if(mimeType.includes('presentation')){em='application/vnd.openxmlformats-officedocument.presentationml.presentation';ext='.pptx';}
-      if(!dlName.match(/\.[a-z]{2,5}$/i))dlName+=ext;
-      url=`https://www.googleapis.com/drive/v3/files/${id}/export?mimeType=${encodeURIComponent(em)}`;
-    }else{
-      url=`https://www.googleapis.com/drive/v3/files/${id}?alt=media`;
-    }
-    const resp=await fetch(url,{headers:{Authorization:'Bearer '+tok}});
-    if(!resp.ok){toast('Erro '+resp.status,'err');return;}
-    const blob=await resp.blob();
-    const bUrl=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=bUrl;a.download=dlName;a.click();
-    setTimeout(()=>URL.revokeObjectURL(bUrl),5000);
-    toast('✅ Descarregado!');
-  }catch(e){toast('Erro: '+e.message,'err');}
+function dlDrive(id,name,mimeType){
+  toast('⬇️ A abrir download...');
+  let url;
+  if(mimeType.includes('vnd.google-apps')){
+    if(mimeType.includes('spreadsheet'))
+      url=`https://docs.google.com/spreadsheets/d/${id}/export?format=xlsx`;
+    else if(mimeType.includes('document'))
+      url=`https://docs.google.com/document/d/${id}/export?format=docx`;
+    else if(mimeType.includes('presentation'))
+      url=`https://docs.google.com/presentation/d/${id}/export?format=pptx`;
+    else
+      url=`https://docs.google.com/document/d/${id}/export?format=pdf`;
+  }else{
+    url=`https://drive.google.com/uc?export=download&id=${id}`;
+  }
+  window.open(url,'_blank');
 }
+
 async function delDrive(id,name){if(!confirm(`Apagar "${name}"?`))return;await api(`https://www.googleapis.com/drive/v3/files/${id}`,{method:'DELETE'});toast(`🗑️ "${name}" apagado`);loadDrive(curDF);}
 function openRename(id,name){ge('rname').value=name;ge('rid').value=id;openModal('m-rename');}
 async function doRename(){const nm=ge('rname').value.trim(),id=ge('rid').value;if(!nm)return;await api(`https://www.googleapis.com/drive/v3/files/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({name:nm})});toast(`✅ Renomeado para "${nm}"`);closeModal('m-rename');loadDrive(curDF);}
