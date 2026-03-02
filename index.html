@@ -372,10 +372,6 @@ body{
 <div class="snav">
   <div class="slabel">Google Drive</div>
   <div class="ni" onclick="sv('drive','root')" id="n-dr"><span class="nicon">💾</span><span class="nlabel">O Meu Drive</span></div>
-  <div class="ni sub cat-c" onclick="sv('drive','clientes')" id="n-dc"><span class="nicon">👥</span><span class="nlabel">Clientes</span></div>
-  <div class="ni sub cat-e" onclick="sv('drive','empresa')" id="n-de"><span class="nicon">🏢</span><span class="nlabel">Empresa</span></div>
-  <div class="ni sub cat-f" onclick="sv('drive','fornecedores')" id="n-df"><span class="nicon">🚚</span><span class="nlabel">Fornecedores</span></div>
-  <div class="ni sub cat-p" onclick="sv('drive','phcgo')" id="n-dp"><span class="nicon">📊</span><span class="nlabel">PHC GO</span></div>
 </div>
 <div class="snav">
   <div class="slabel">Sistema</div>
@@ -500,25 +496,12 @@ body{
       <h3>💾 Configurações do Drive</h3>
       <div class="fr"><div class="fg"><label>Vista padrão</label><select class="fc" id="c-dv"><option value="grid">Grade</option><option value="list">Lista</option></select></div>
       <div class="fg"><label>Ordenar por</label><select class="fc" id="c-ds"><option value="name">Nome</option><option value="date">Data</option></select></div></div>
-      <div class="fg"><label>IDs das Pastas (auto-preenchido)</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <div><label style="font-size:10px;color:var(--text2)">👥 Clientes</label><input class="fc" id="c-fc" placeholder="(auto)" style="font-size:11px"></div>
-          <div><label style="font-size:10px;color:var(--text2)">🏢 Empresa</label><input class="fc" id="c-fe" placeholder="(auto)" style="font-size:11px"></div>
-          <div><label style="font-size:10px;color:var(--text2)">🚚 Fornecedores</label><input class="fc" id="c-ff" placeholder="(auto)" style="font-size:11px"></div>
-          <div><label style="font-size:10px;color:var(--text2)">📊 PHC GO</label><input class="fc" id="c-fp" placeholder="(auto)" style="font-size:11px"></div>
-        </div>
-      </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn bp" onclick="saveCfg('drive')">💾 Guardar</button>
-        <button class="btn bs" onclick="setupFolders()">📁 Criar Pastas no Drive</button>
       </div>
     </div>
 
-    <div class="ssec" id="s-folders">
-      <h3>📂 Gestão de Pastas</h3>
-      <p style="color:var(--text2);margin-bottom:14px;font-size:13px">Gere as pastas das categorias no Google Drive.</p>
-      <div id="folder-cats"></div>
-    </div>
+
 
     <div class="ssec" id="s-printers">
       <h3>🖨️ Impressoras</h3>
@@ -598,7 +581,7 @@ body{
   <div class="scard" onclick="openImport()"><div class="sico2">📥</div><h4>Importar Dados</h4><p>Restaurar de ficheiro JSON</p></div>
   <div class="scard" onclick="repairApp()"><div class="sico2">🔨</div><h4>Reparar App</h4><p>Limpar cache e reiniciar autenticação</p></div>
   <div class="scard" onclick="resetCfg()"><div class="sico2">🔄</div><h4>Repor Configurações</h4><p>Valores padrão de fábrica</p></div>
-  <div class="scard" onclick="setupFolders()"><div class="sico2">📁</div><h4>Criar Pastas Drive</h4><p>Criar estrutura de pastas automaticamente</p></div>
+
   <div class="scard" onclick="clearCache()"><div class="sico2">🧹</div><h4>Limpar Cache</h4><p>Remover dados temporários</p></div>
   <div class="scard" onclick="reAuth()"><div class="sico2">🔑</div><h4>Re-autenticar</h4><p>Renovar token Google</p></div>
   <div class="scard" onclick="openModal('m-about')"><div class="sico2">ℹ️</div><h4>Sobre</h4><p>Versão e informações do sistema</p></div>
@@ -661,15 +644,7 @@ body{
   <div class="mh"><h3 id="fmod-title">📁 Nova Pasta</h3><button class="bx" onclick="closeModal('m-folder')">×</button></div>
   <div class="mb">
     <div class="fg"><label>Nome da Pasta</label><input class="fc" id="fn" placeholder="Nome da pasta"></div>
-    <div class="fg"><label>Categoria</label>
-      <select class="fc" id="fcat">
-        <option value="">Drive Principal</option>
-        <option value="clientes">👥 Clientes</option>
-        <option value="empresa">🏢 Empresa</option>
-        <option value="fornecedores">🚚 Fornecedores</option>
-        <option value="phcgo">📊 PHC GO</option>
-      </select>
-    </div>
+    <input type="hidden" id="fcat" value="">
     <input type="hidden" id="feid">
   </div>
   <div class="mf">
@@ -944,8 +919,7 @@ function populateForms(){
   s('c-dv',cfg.driveView);s('c-ds',cfg.driveSort);
   s('c-gk',cfg.geminiKey);s('c-at',cfg.aiTone);s('c-al',cfg.aiLang);
   s('c-col',cfg.primaryColor);s('c-fs',cfg.fontSize);
-  s('c-fc',cfg.folders.clientes);s('c-fe',cfg.folders.empresa);
-  s('c-ff',cfg.folders.fornecedores);s('c-fp',cfg.folders.phcgo);
+
   document.querySelectorAll('input[name=thm]').forEach(r=>r.checked=r.value===cfg.theme);
   renderPrinters();renderFolderCats();
 }
@@ -954,7 +928,7 @@ function saveCfg(sec){
   const g=(id)=>{const e=ge(id);return e?e.value:'';};
   if(sec==='general'){cfg.companyName=g('c-cn');cfg.nif=g('c-nif');cfg.email=g('c-em');cfg.phone=g('c-ph');cfg.address=g('c-addr');cfg.website=g('c-web');}
   if(sec==='email'){cfg.senderName=g('c-sn');cfg.signature=g('c-sig');cfg.autoReply=g('c-ar');}
-  if(sec==='drive'){cfg.driveView=g('c-dv');cfg.driveSort=g('c-ds');cfg.folders.clientes=g('c-fc');cfg.folders.empresa=g('c-fe');cfg.folders.fornecedores=g('c-ff');cfg.folders.phcgo=g('c-fp');}
+  if(sec==='drive'){cfg.driveView=g('c-dv');cfg.driveSort=g('c-ds');}
   if(sec==='ai'){cfg.geminiKey=g('c-gk');cfg.aiTone=g('c-at');cfg.aiLang=g('c-al');}
   if(sec==='appear'){cfg.primaryColor=g('c-col');cfg.fontSize=g('c-fs');setColor(cfg.primaryColor);document.body.style.fontSize=cfg.fontSize+'px';}
   saveCfg2();toast('✅ Guardado!');
@@ -980,7 +954,7 @@ function sv(view,param){
   else ta.style.display='none';
   if(view==='email'){const n=ge('n-'+param);if(n)n.classList.add('on');curLabel=param||'INBOX';loadEmails(curLabel);}
   else if(view==='drive'){
-    const nm={'root':'n-dr','clientes':'n-dc','empresa':'n-de','fornecedores':'n-df','phcgo':'n-dp'};
+    const nm={'root':'n-dr'};
     const n=ge(nm[param]||'n-dr');if(n)n.classList.add('on');
     if(param&&param!=='root'&&cfg.folders[param])navDrive(cfg.folders[param],param.charAt(0).toUpperCase()+param.slice(1));
     else navDrive('root','O Meu Drive');
@@ -1324,7 +1298,7 @@ async function delDrive(id,name){if(!confirm(`Apagar "${name}"?`))return;await a
 function openRename(id,name){ge('rname').value=name;ge('rid').value=id;openModal('m-rename');}
 async function doRename(){const nm=ge('rname').value.trim(),id=ge('rid').value;if(!nm)return;await api(`https://www.googleapis.com/drive/v3/files/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({name:nm})});toast(`✅ Renomeado para "${nm}"`);closeModal('m-rename');loadDrive(curDF);}
 function updateTree(){
-  const cats=[{k:'root',l:'O Meu Drive',i:'💾'},{k:'clientes',l:'Clientes',i:'👥'},{k:'empresa',l:'Empresa',i:'🏢'},{k:'fornecedores',l:'Fornecedores',i:'🚚'},{k:'phcgo',l:'PHC GO',i:'📊'}];
+  const cats=[{k:'root',l:'O Meu Drive',i:'💾'}];
   ge('dtree').innerHTML=cats.map(c=>{const fId=c.k==='root'?'root':(cfg.folders[c.k]||'');const on=curDF===(fId||c.k);
     return`<div class="dti${on?' on':''}" onclick="${fId?`navDrive('${fId}','${c.l}')`:`sv('settings','folders')`}">${c.i} ${c.l}${!fId&&c.k!=='root'?'<span style="font-size:9px;color:var(--warn);margin-left:auto">⚠️</span>':''}</div>`;
   }).join('');
