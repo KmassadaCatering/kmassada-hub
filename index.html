@@ -362,6 +362,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
   <h2 id="tbtitle">Caixa de Entrada</h2>
   <div class="srch" id="srch" style="display:none"><span>🔍</span><input id="srch-i" placeholder="Pesquisar..." onkeydown="if(event.key==='Enter')doSrch()"></div>
   <div style="display:flex;gap:6px;margin-left:auto;align-items:center">
+    <button class="btn bs bsm" onclick="sv('settings','general')" title="Configurações" style="font-size:16px;padding:5px 9px">⚙️</button>
     <button id="installBtn" onclick="installApp()" title="Instalar como App" style="display:flex;background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;align-items:center;gap:4px;white-space:nowrap">📲 Instalar</button>
     <button class="btn bs bsm" onclick="toggleDark()" id="btnd">🌙</button>
     <button class="btn bp bsm" id="tbact" onclick="openCompose()">✏️ Escrever</button>
@@ -424,6 +425,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
     <div class="sni" onclick="showSec('printers',this)">🖨️ Impressoras</div>
     <div class="sni" onclick="showSec('ai',this)">🤖 IA</div>
     <div class="sni" onclick="showSec('appear',this)">🎨 Aparência</div>
+    <div class="sni" onclick="showSec('data',this)">🗑️ Dados & Sessão</div>
   </div>
   <div class="scont">
 
@@ -499,6 +501,39 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
       <div class="fr"><div class="fg"><label>Cor Principal</label><input type="color" id="c-col" value="#c8860a" onchange="setColor(this.value)" style="width:56px;height:38px;border:none;cursor:pointer;border-radius:6px"></div>
       <div class="fg"><label>Tamanho Fonte</label><select class="fc" id="c-fs"><option value="13">Pequena</option><option value="14" selected>Normal</option><option value="16">Grande</option></select></div></div>
       <button class="btn bp" onclick="saveCfg('appear')">💾 Guardar</button>
+    </div>
+
+    <div class="ssec" id="s-data">
+      <h3>🗑️ Dados &amp; Sessão</h3>
+      <p style="margin-bottom:14px;opacity:0.8;font-size:15px">Opções para limpar dados, cache e reiniciar sessão do Kmassada Hub.</p>
+
+      <div style="display:grid;gap:12px">
+
+        <div style="background:var(--bg2,rgba(0,0,0,0.04));border-radius:10px;padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">🔄 Reiniciar vista</div>
+          <div style="font-size:14px;opacity:0.7;margin-bottom:10px">Fecha todos os painéis e volta ao estado inicial sem recarregar a página.</div>
+          <button class="btn bs" onclick="sv('email','');loadEmails('INBOX')">🔄 Reiniciar</button>
+        </div>
+
+        <div style="background:var(--bg2,rgba(0,0,0,0.04));border-radius:10px;padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">↺ Recarregar página</div>
+          <div style="font-size:14px;opacity:0.7;margin-bottom:10px">Recarrega a aplicação normalmente (mantém sessão).</div>
+          <button class="btn bs" onclick="location.reload()">↺ Recarregar</button>
+        </div>
+
+        <div style="background:var(--bg2,rgba(0,0,0,0.04));border-radius:10px;padding:14px">
+          <div style="font-weight:600;margin-bottom:6px">🔃 Forçar Atualização</div>
+          <div style="font-size:14px;opacity:0.7;margin-bottom:10px">Apaga o cache da app e carrega a versão mais recente. Útil quando a app ficou desatualizada.</div>
+          <button class="btn bp" onclick="forceUpdate()">🔃 Forçar Atualização</button>
+        </div>
+
+        <div style="background:rgba(220,50,50,0.08);border:1px solid rgba(220,50,50,0.2);border-radius:10px;padding:14px">
+          <div style="font-weight:600;margin-bottom:6px;color:#c0392b">⚠️ Limpar Tudo</div>
+          <div style="font-size:14px;opacity:0.7;margin-bottom:10px">Apaga todos os dados locais, cache e sessão Google. Vai precisar de fazer login novamente.</div>
+          <button class="btn" style="background:#c0392b;color:#fff" onclick="clearAll()">⚠️ Limpar Tudo</button>
+        </div>
+
+      </div>
     </div>
 
   </div>
@@ -718,6 +753,40 @@ let cfg={
   folders:{clientes:'',empresa:'',fornecedores:'',phcgo:''},
   printers:[]
 };
+
+function downloadShortcut(){
+  const url='https://kmassadacatering.github.io/kmassada-hub/';
+  const content='[InternetShortcut]\nURL='+url+'\nIconFile='+url+'icon-192.png\nIconIndex=0';
+  const blob=new Blob([content],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Kmassada Hub.url';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function triggerPWAInstall(){
+  if(window._deferredPrompt){
+    window._deferredPrompt.prompt();
+    window._deferredPrompt.userChoice.then(r=>{
+      if(r.outcome==='accepted') showNotification('✅ App instalada com sucesso!');
+      window._deferredPrompt=null;
+    });
+  } else {
+    showNotification('ℹ️ Usa o separador Windows/PC para instruções de instalação manual');
+  }
+}
+
+function forceUpdate(){
+  if(confirm('Forçar atualização vai apagar o cache e recarregar a versão mais recente. Continuar?')){
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations().then(regs=>{
+        regs.forEach(r=>r.unregister());
+        caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>location.reload(true));
+      });
+    } else { location.reload(true); }
+  }
+}
 
 function loadCfg(){try{const s=localStorage.getItem('kmhub_cfg');if(s){const p=JSON.parse(s);cfg={...cfg,...p};if(p.folders)cfg.folders={...cfg.folders,...p.folders};if(p.printers)cfg.printers=p.printers;}}catch(e){}}
 function saveCfg2(){try{localStorage.setItem('kmhub_cfg',JSON.stringify(cfg));slog('Config guardada.');}catch(e){}}
@@ -1390,6 +1459,7 @@ function showInstallGuide(forceTab){
     { id:'pc',      icon:'🖥️', label:'Windows/PC' },
     { id:'android', icon:'🤖', label:'Android' },
     { id:'ios',     icon:'🍎', label:'iPhone' },
+    { id:'desktop', icon:'🗂️', label:'Atalho' },
     { id:'enviar',  icon:'📨', label:'Enviar' },
   ];
 
@@ -1420,6 +1490,41 @@ function showInstallGuide(forceTab){
         <p style="font-size:12px;opacity:0.7;margin-top:6px">📷 Abre no Safari e instala</p>
       </div>
       <p style="text-align:center;font-size:12px;opacity:0.7">⚠️ No iPhone tem de ser o Safari — o Chrome não permite instalar</p>`,
+    desktop: `
+      <p style="margin-bottom:10px"><strong>🗂️ Atalho no Ambiente de Trabalho</strong> (Windows)</p>
+      <div style="display:grid;gap:10px">
+
+        <div style="background:rgba(0,0,0,0.05);border-radius:8px;padding:12px">
+          <div style="font-weight:600;margin-bottom:4px">⬇️ Método 1 — Descarregar ficheiro .url</div>
+          <div style="font-size:13px;opacity:0.7;margin-bottom:8px">Clica no botão, move o ficheiro descarregado para o Ambiente de Trabalho e abre com duplo clique.</div>
+          <button class="btn bp" onclick="downloadShortcut()" style="font-size:14px">⬇️ Descarregar Atalho (.url)</button>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.05);border-radius:8px;padding:12px">
+          <div style="font-weight:600;margin-bottom:4px">📌 Método 2 — Instalar como App PWA (recomendado)</div>
+          <div style="font-size:13px;opacity:0.7;margin-bottom:8px">Cria ícone no Ambiente de Trabalho e abre sem barra do browser.</div>
+          <button class="btn bp" onclick="triggerPWAInstall()" style="font-size:14px">📌 Instalar App</button>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.05);border-radius:8px;padding:12px">
+          <div style="font-weight:600;margin-bottom:4px">✋ Método 3 — Criar no Chrome manualmente</div>
+          <ol style="font-size:13px;margin:6px 0 0 18px;line-height:1.8">
+            <li>Abre <strong>Chrome</strong> → Menu <strong>⋮</strong></li>
+            <li>Escolhe <strong>"Mais ferramentas"</strong> → <strong>"Criar atalho"</strong></li>
+            <li>Marca ✅ <strong>"Abrir como janela"</strong> → <strong>"Criar"</strong></li>
+          </ol>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.05);border-radius:8px;padding:12px">
+          <div style="font-weight:600;margin-bottom:4px">✋ Método 4 — Edge (Windows 10/11)</div>
+          <ol style="font-size:13px;margin:6px 0 0 18px;line-height:1.8">
+            <li>Abre <strong>Edge</strong> → Menu <strong>···</strong></li>
+            <li>Escolhe <strong>Apps</strong> → <strong>"Instalar este site como app"</strong></li>
+          </ol>
+        </div>
+
+      </div>
+    `,
     enviar: `<p style="margin-bottom:12px">Envia o link do Kmassada Hub para qualquer telemóvel:</p>
       <div style="background:var(--bg2,rgba(0,0,0,0.05));border-radius:10px;padding:14px;margin-bottom:12px">
         <div style="font-weight:600;margin-bottom:8px">📧 Enviar por Email</div>
