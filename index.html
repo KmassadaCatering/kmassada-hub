@@ -1371,7 +1371,7 @@ window.addEventListener('appinstalled', () => {
 
 window.addEventListener('load', () => { setTimeout(updateInstallBtn, 1200); });
 
-async async function installApp(){
+async function installApp(){
   // Always show guide with all device options
   // If Chrome can install natively, offer that option too at the top
   showInstallGuide();
@@ -1382,42 +1382,66 @@ function showInstallGuide(forceTab){
   const isAndroid = /Android/.test(ua);
   const isIOS = /iPad|iPhone|iPod/.test(ua);
   const APP_URL = 'https://kmassadacatering.github.io/kmassada-hub/';
-  const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(APP_URL)}`;
+  const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(APP_URL)}`;
 
   let defaultTab = forceTab || (isAndroid ? 'android' : isIOS ? 'ios' : 'pc');
 
   const tabs = [
-    { id:'pc',      icon:'🖥️', label:'Windows' },
+    { id:'pc',      icon:'🖥️', label:'Windows/PC' },
     { id:'android', icon:'🤖', label:'Android' },
     { id:'ios',     icon:'🍎', label:'iPhone' },
-    { id:'qr',      icon:'📷', label:'QR Code' },
+    { id:'enviar',  icon:'📨', label:'Enviar' },
   ];
 
   const content = {
-    pc: `<p>No <strong>Chrome PC</strong>:</p><ol>
+    pc: `<p>No <strong>Chrome ou Edge</strong>:</p><ol>
       <li>Clica nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
       <li>Clica em <strong>"Instalar Kmassada Hub..."</strong></li>
       <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Podes também ver o ícone <strong>⊕</strong> na barra de endereços</p>
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Podes também ver o ícone <strong>⊕</strong> na barra de endereços do Chrome</p>
       <p style="margin-top:6px;font-size:13px;opacity:0.7">No <strong>Edge</strong>: Menu ··· → Apps → "Instalar este site como app"</p>`,
     android: `<p>No <strong>Chrome Android</strong>:</p><ol>
-      <li>Abre o <a href="${APP_URL}" target="_blank" style="color:var(--primary)">link no Chrome</a> ou usa o QR Code</li>
+      <li>Abre o link abaixo ou usa o QR Code</li>
       <li>Toca nos <strong>três pontinhos ⋮</strong></li>
       <li>Toca em <strong>"Adicionar ao ecrã inicial"</strong> ou <strong>"Instalar app"</strong></li>
       <li>Confirma tocando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Usa o separador <strong>📷 QR Code</strong> para abrir rapidamente no telemóvel!</p>`,
+      <div style="text-align:center;margin:14px 0">
+        <img src="${QR_URL}" alt="QR Code" style="border-radius:10px;border:3px solid var(--primary);width:180px;height:180px">
+        <p style="font-size:12px;opacity:0.7;margin-top:6px">📷 Aponta a câmara para o QR Code</p>
+      </div>
+      <p style="text-align:center;margin-top:4px"><a href="${APP_URL}" target="_blank" style="color:var(--primary);font-size:13px;word-break:break-all">${APP_URL}</a></p>`,
     ios: `<p>No <strong>Safari</strong> (iPhone/iPad):</p><ol>
       <li>Abre o link no Safari (não Chrome)</li>
       <li>Toca no botão <strong>Partilhar 🔗</strong> (em baixo no ecrã)</li>
       <li>Desliza e toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
       <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:13px;opacity:0.7">⚠️ No iPhone tem de ser o Safari — o Chrome não permite instalar no iOS</p>`,
-    qr: `<p style="text-align:center;margin-bottom:8px">Aponta a câmara do telemóvel para instalar:</p>
-      <div style="text-align:center;margin:12px 0">
-        <img src="${QR_URL}" alt="QR Code" style="border-radius:12px;border:3px solid var(--primary);width:220px;height:220px">
+      <div style="text-align:center;margin:14px 0">
+        <img src="${QR_URL}" alt="QR Code" style="border-radius:10px;border:3px solid var(--primary);width:180px;height:180px">
+        <p style="font-size:12px;opacity:0.7;margin-top:6px">📷 Abre no Safari e instala</p>
       </div>
-      <p style="text-align:center;font-size:13px;opacity:0.7">Abre o link no Chrome → toca ⋮ → "Adicionar ao ecrã inicial"</p>
-      <p style="text-align:center;margin-top:8px"><a href="${APP_URL}" target="_blank" style="color:var(--primary);font-size:13px">${APP_URL}</a></p>`,
+      <p style="text-align:center;font-size:12px;opacity:0.7">⚠️ No iPhone tem de ser o Safari — o Chrome não permite instalar</p>`,
+    enviar: `<p style="margin-bottom:12px">Envia o link do Kmassada Hub para qualquer telemóvel:</p>
+      <div style="background:var(--bg2,rgba(0,0,0,0.05));border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:600;margin-bottom:8px">📧 Enviar por Email</div>
+        <div style="display:flex;gap:8px">
+          <input id="inst-email" class="fc" type="email" placeholder="email@exemplo.com" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:14px">
+          <button class="btn bp" style="white-space:nowrap" onclick="sendInstallEmail()">Enviar ✉️</button>
+        </div>
+      </div>
+      <div style="background:var(--bg2,rgba(0,0,0,0.05));border-radius:10px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:600;margin-bottom:8px">💬 Enviar por SMS</div>
+        <div style="display:flex;gap:8px">
+          <input id="inst-phone" class="fc" type="tel" placeholder="+351 912 000 000" style="flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);font-size:14px">
+          <button class="btn bp" style="white-space:nowrap" onclick="sendInstallSMS()">Enviar 💬</button>
+        </div>
+      </div>
+      <div style="text-align:center;padding:8px">
+        <div style="font-size:12px;opacity:0.6;margin-bottom:8px">Ou copia o link:</div>
+        <div style="display:flex;gap:6px;align-items:center;justify-content:center">
+          <span style="font-size:11px;color:var(--primary);word-break:break-all">${APP_URL}</span>
+          <button class="btn bs bsm" onclick="navigator.clipboard.writeText('${APP_URL}');toast('✅ Link copiado!','ok')">📋</button>
+        </div>
+      </div>`,
   };
 
   // Build native install button if Chrome supports it
@@ -1432,21 +1456,21 @@ function showInstallGuide(forceTab){
 
   const tabsHTML = tabs.map(t => `
     <button onclick="switchInstallTab('${t.id}')" id="itab-${t.id}"
-      style="flex:1;padding:8px 4px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;
+      style="flex:1;padding:7px 3px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s;
              background:${t.id===defaultTab?'var(--primary)':'transparent'};
              color:${t.id===defaultTab?'#fff':'inherit'};opacity:${t.id===defaultTab?'1':'0.6'}">
-      ${t.icon}<br><span style="font-size:11px">${t.label}</span>
+      ${t.icon}<br><span style="font-size:10px">${t.label}</span>
     </button>`).join('');
 
   const modalHTML = `
     <div id="install-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px" onclick="if(event.target===this)this.remove()">
-      <div style="background:var(--bg);border-radius:16px;padding:20px;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4)" onclick="event.stopPropagation()">
+      <div style="background:var(--bg);border-radius:16px;padding:20px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div style="font-size:18px;font-weight:700">📲 Instalar Kmassada Hub</div>
           <button onclick="document.getElementById('install-modal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;opacity:0.6;line-height:1">×</button>
         </div>
         ${nativeBtn}
-        <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--sidebar-bg,rgba(0,0,0,0.05));border-radius:10px;padding:6px">
+        <div style="display:flex;gap:5px;margin-bottom:16px;background:var(--sidebar-bg,rgba(0,0,0,0.05));border-radius:10px;padding:5px">
           ${tabsHTML}
         </div>
         <div id="install-tab-content" style="font-size:14px;line-height:1.6">
@@ -1455,11 +1479,39 @@ function showInstallGuide(forceTab){
       </div>
     </div>`;
 
-  // Store content for tab switching
   window._installContent = content;
-
   document.getElementById('install-modal')?.remove();
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function sendInstallEmail(){
+  const email = document.getElementById('inst-email')?.value?.trim();
+  const APP_URL = 'https://kmassadacatering.github.io/kmassada-hub/';
+  if(!email){toast('⚠️ Insere um email','warn');return;}
+  // Use Hub compose if logged in, else mailto
+  if(window.gAccessToken){
+    document.getElementById('install-modal')?.remove();
+    openCompose();
+    setTimeout(()=>{
+      const to = document.getElementById('cto');
+      const sub = document.getElementById('csub');
+      const body = document.getElementById('cbody');
+      if(to) to.value = email;
+      if(sub) sub.value = 'Instalar Kmassada Hub no teu telemóvel';
+      if(body) body.value = 'Olá!\n\nInstala o Kmassada Hub no teu telemóvel abrindo este link no Chrome:\n\n' + APP_URL + '\n\nDepois toca nos três pontos ⋮ → "Adicionar ao ecrã inicial" → Instalar.\n\nKmassada Catering';
+    },400);
+  } else {
+    const mailto = `mailto:${email}?subject=${encodeURIComponent('Instalar Kmassada Hub')}&body=${encodeURIComponent('Abre este link no Chrome do teu telemóvel Android:\n\n'+APP_URL+'\n\nDepois: ⋮ → "Adicionar ao ecrã inicial" → Instalar.')}`;
+    window.open(mailto);
+  }
+}
+
+function sendInstallSMS(){
+  const phone = document.getElementById('inst-phone')?.value?.trim();
+  const APP_URL = 'https://kmassadacatering.github.io/kmassada-hub/';
+  if(!phone){toast('⚠️ Insere um número de telefone','warn');return;}
+  const msg = 'Instala o Kmassada Hub: ' + APP_URL + ' (Chrome → ⋮ → Adicionar ao ecrã inicial)';
+  window.open(`sms:${phone}?body=${encodeURIComponent(msg)}`);
 }
 
 async function doNativeInstall(){
