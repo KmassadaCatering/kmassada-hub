@@ -111,6 +111,17 @@ body{
 [data-layout="mobile"] .edetail.mob-open .emob-back{display:block !important}
 .eitem{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--tr);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
 .eitem:hover{background:var(--bg)}
+
+.echk{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:var(--surface);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr);font-size:12px}
+.eitem.msel .echk{background:var(--primary);border-color:var(--primary);color:#fff}
+.eitem.msel{background:rgba(200,134,10,.12)!important}
+.ebulkbar{display:none;padding:8px 12px;background:var(--primary);color:#fff;gap:6px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(0,0,0,.2)}
+.ebulkbar.show{display:flex}
+.ebulkbar button{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.ebulkbar button:hover{background:rgba(255,255,255,.35)}
+.esel-btn{background:var(--surface2)!important;border:1px solid var(--border)!important}
+.esel-btn.active{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important}
+
 .eitem.unread{font-weight:600;border-left:3px solid var(--primary)}
 .eitem.sel{background:rgba(200,134,10,.08)}
 .efrom{font-size:16px;color:var(--text)}
@@ -406,6 +417,15 @@ body{
     <div style="padding:10px;border-bottom:1px solid var(--border);display:flex;gap:6px">
       <div class="srch" style="flex:1"><span>🔍</span><input id="es" placeholder="Pesquisar emails..." onkeydown="if(event.key==='Enter')doESrch()"></div>
       <button class="btn bs bsm" onclick="loadEmails(curLabel)">🔄</button>
+      <button class="btn bs bsm esel-btn" id="selModeBtn" onclick="toggleSelMode()" title="Seleção múltipla">☑️</button>
+    </div>
+    <div id="ebulkbar" class="ebulkbar">
+      <span id="eselcount">0 selecionados</span>
+      <button onclick="bulkSelectAll()">✅ Todos</button>
+      <button onclick="bulkMarkRead()">📖 Ler</button>
+      <button onclick="bulkArchive()">📦 Arquivar</button>
+      <button onclick="bulkDelete()" style="background:rgba(220,50,50,.7)">🗑️ Apagar</button>
+      <button onclick="toggleSelMode()" style="margin-left:auto">✕ Cancelar</button>
     </div>
     <div id="elist"><div class="loading"><div class="spin"></div> A carregar...</div></div>
   </div>
@@ -1020,6 +1040,80 @@ async function loadEmails(lbl){
   const u=det.filter(d=>d&&d.labelIds&&d.labelIds.includes('UNREAD')).length;
   const b=ge('badge-u');if(u>0){b.textContent=u;b.style.display='';}else b.style.display='none';
 }
+let selMode=false;
+let selIds=new Set();
+
+function toggleSelMode(){
+  selMode=!selMode;
+  selIds.clear();
+  const btn=ge('selModeBtn');
+  const bar=ge('ebulkbar');
+  if(btn){btn.classList.toggle('active',selMode);btn.title=selMode?'Cancelar seleção':'Seleção múltipla';}
+  if(bar){bar.classList.toggle('show',selMode);}
+  // Show/hide checkboxes
+  document.querySelectorAll('.echk').forEach(c=>c.style.display=selMode?'flex':'none');
+  document.querySelectorAll('.eitem.msel').forEach(e=>e.classList.remove('msel'));
+  updateBulkBar();
+}
+
+function eitemClick(id,el){
+  if(selMode){
+    if(selIds.has(id)){selIds.delete(id);el.classList.remove('msel');}
+    else{selIds.add(id);el.classList.add('msel');}
+    updateBulkBar();
+  } else {
+    openEmail(id,el);
+  }
+}
+
+function updateBulkBar(){
+  const c=ge('eselcount');
+  if(c)c.textContent=selIds.size+' selecionado'+(selIds.size!==1?'s':'');
+}
+
+function bulkSelectAll(){
+  const items=document.querySelectorAll('.eitem');
+  const allSel=selIds.size===items.length;
+  selIds.clear();
+  items.forEach(el=>{
+    if(!allSel){const id=el.dataset.id;if(id){selIds.add(id);el.classList.add('msel');}}
+    else el.classList.remove('msel');
+  });
+  updateBulkBar();
+}
+
+async function bulkMarkRead(){
+  if(!selIds.size)return;
+  const ids=[...selIds];
+  toast('📖 A marcar como lido...');
+  await Promise.all(ids.map(id=>api(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,{method:'POST',body:JSON.stringify({removeLabelIds:['UNREAD']})})));
+  toast('✅ Marcado como lido!');
+  toggleSelMode();
+  loadEmails(curLabel);
+}
+
+async function bulkArchive(){
+  if(!selIds.size)return;
+  if(!confirm(`Arquivar ${selIds.size} email(s)?`))return;
+  const ids=[...selIds];
+  toast('📦 A arquivar...');
+  await Promise.all(ids.map(id=>api(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/modify`,{method:'POST',body:JSON.stringify({removeLabelIds:['INBOX']})})));
+  toast(`📦 ${ids.length} email(s) arquivado(s)!`);
+  toggleSelMode();
+  loadEmails(curLabel);
+}
+
+async function bulkDelete(){
+  if(!selIds.size)return;
+  if(!confirm(`Apagar ${selIds.size} email(s)?`))return;
+  const ids=[...selIds];
+  toast('🗑️ A apagar...');
+  await Promise.all(ids.map(id=>api(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}/trash`,{method:'POST'})));
+  toast(`🗑️ ${ids.length} email(s) apagado(s)!`);
+  toggleSelMode();
+  loadEmails(curLabel);
+}
+
 function renderEmails(emails){
   ge('elist').innerHTML=emails.map(e=>{
     const h=n=>(e.payload?.headers?.find(h=>h.name===n)?.value)||'';
@@ -1027,10 +1121,13 @@ function renderEmails(emails){
     const sub=h('Subject')||'(sem assunto)';
     const dt=new Date(parseInt(e.internalDate)).toLocaleDateString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const unr=e.labelIds?.includes('UNREAD'),str=e.labelIds?.includes('STARRED');
-    return `<div class="eitem ${unr?'unread':''}" onclick="openEmail('${e.id}',this)" ontouchstart="touchStart(event)" ontouchend="touchEnd(event,()=>openEmail('${e.id}',this))">
-      <div style="display:flex;justify-content:space-between"><span class="efrom">${esc(fr)}</span><span class="edate">${dt}</span></div>
-      <div class="esubj">${str?'⭐ ':''}${esc(sub)}</div>
-      <div class="esnip">${esc(e.snippet||'')}</div>
+    return `<div class="eitem ${unr?'unread':''}" data-id="${e.id}" onclick="eitemClick('${e.id}',this)" ontouchstart="touchStart(event)" ontouchend="touchEnd(event,()=>eitemClick('${e.id}',this))" style="display:flex;align-items:flex-start;gap:10px">
+      <div class="echk" id="chk_${e.id}" style="margin-top:4px;display:none">✓</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between"><span class="efrom">${esc(fr)}</span><span class="edate">${dt}</span></div>
+        <div class="esubj">${str?'⭐ ':''}${esc(sub)}</div>
+        <div class="esnip">${esc(e.snippet||'')}</div>
+      </div>
     </div>`;
   }).join('');
 }
