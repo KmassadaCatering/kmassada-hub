@@ -883,7 +883,7 @@ function closeEmailDetail(){
   const d=ge('edetail');
   if(d) d.classList.remove('open');
 }
-async async function openEmail(id,el){
+async function openEmail(id,el){
   document.querySelectorAll('.eitem').forEach(e=>e.classList.remove('sel'));
   if(el)el.classList.add('sel');
   const p=ge('edetail');
