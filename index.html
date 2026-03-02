@@ -984,7 +984,7 @@ async function sendEmail(){
   if(cc)hdr+=`\r\nCc: ${cc}`;if(bcc)hdr+=`\r\nBcc: ${bcc}`;if(replyId)hdr+=`\r\nIn-Reply-To: ${replyId}`;
   const raw=btoa(unescape(encodeURIComponent(hdr+'\r\n\r\n'+body))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   const r=await api('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',body:JSON.stringify({raw})});
-  if(r?.id){toast('📤 Email enviado!','ok');closeModal('m-compose');if(curLabel==='SENT')loadEmails('SENT');}
+  if(r?.id){toast('📤 Email enviado! A abrir Enviados...','ok');closeModal('m-compose');setTimeout(()=>{sv('email','SENT');},800);}
   else toast('Erro ao enviar','err');
 }
 function useTpl(k){
@@ -1338,25 +1338,104 @@ function installPWA(){
 
 // === PWA INSTALL ===
 let deferredPrompt = null;
+
+function updateInstallBtn(){
+  const btn = document.getElementById('installBtn');
+  if(!btn) return;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if(isStandalone){ btn.style.display='none'; return; }
+  btn.style.display = 'flex';
+  if(deferredPrompt){
+    btn.innerHTML = '⬇ Instalar';
+    btn.style.background = 'var(--primary)';
+    btn.title = 'Clica para instalar como App';
+  } else {
+    btn.innerHTML = '📲 Instalar';
+    btn.style.background = '#888';
+    btn.title = 'Ver como instalar manualmente';
+  }
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  const btn = document.getElementById('installBtn');
-  if(btn) btn.style.display = 'flex';
+  updateInstallBtn();
 });
+
 window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
   const btn = document.getElementById('installBtn');
   if(btn) btn.style.display = 'none';
-  deferredPrompt = null;
+  toast('✅ App instalada com sucesso!','ok');
 });
+
+window.addEventListener('load', () => { setTimeout(updateInstallBtn, 1200); });
+
 async function installApp(){
-  if(!deferredPrompt){
-    alert('Para instalar:\n\n🖥️ PC: Clica nos três pontinhos (⋮) no Chrome → "Instalar Kmassada Hub"\n📱 Android: Três pontinhos → "Adicionar ao ecrã inicial"');
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const {outcome} = await deferredPrompt.userChoice;
+    if(outcome==='accepted'){ deferredPrompt=null; toast('✅ A instalar...','ok'); }
     return;
   }
-  deferredPrompt.prompt();
-  const {outcome} = await deferredPrompt.userChoice;
-  if(outcome === 'accepted') deferredPrompt = null;
+  showInstallGuide();
+}
+
+function showInstallGuide(){
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isAndroid = /Android/.test(ua);
+  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua) && !/OPR/.test(ua);
+  const isEdge = /Edg/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+  let steps='';
+  if(isIOS && isSafari){
+    steps=`<p>No <strong>Safari</strong> do iPhone/iPad:</p><ol>
+      <li>Toca no botão <strong>Partilhar</strong> 🔗 (parte inferior do ecrã)</li>
+      <li>Desliza para baixo → toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
+      <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>`;
+  } else if(isAndroid && isChrome){
+    steps=`<p>No <strong>Chrome Android</strong>:</p><ol>
+      <li>Toca nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
+      <li>Toca em <strong>"Adicionar ao ecrã inicial"</strong> ou <strong>"Instalar app"</strong></li>
+      <li>Confirma tocando em <strong>"Instalar"</strong></li></ol>
+      <p style="margin-top:10px;font-size:14px;opacity:0.7">💡 Usa o Chrome — outros browsers podem não ter esta opção</p>`;
+  } else if(isChrome){
+    steps=`<p>No <strong>Chrome PC</strong>:</p><ol>
+      <li>Clica nos <strong>três pontinhos ⋮</strong> (canto superior direito do Chrome)</li>
+      <li>Clica em <strong>"Instalar Kmassada Hub..."</strong></li>
+      <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>
+      <p style="margin-top:10px;font-size:14px;opacity:0.7">💡 Também podes procurar o ícone <strong>⊕</strong> na barra de endereços do Chrome</p>`;
+  } else if(isEdge){
+    steps=`<p>No <strong>Microsoft Edge</strong>:</p><ol>
+      <li>Clica nos <strong>três pontos ···</strong> (canto superior direito)</li>
+      <li>Clica em <strong>"Aplicações"</strong> → <strong>"Instalar este site como aplicação"</strong></li>
+      <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>`;
+  } else {
+    steps=`<p>Para instalar, usa o <strong>Google Chrome</strong>:</p><ol>
+      <li>Abre o site no Chrome</li>
+      <li>Clica nos <strong>três pontinhos ⋮</strong></li>
+      <li>Seleciona <strong>"Instalar Kmassada Hub"</strong></li></ol>`;
+  }
+  let m = document.getElementById('installGuideModal');
+  if(!m){ m=document.createElement('div'); m.id='installGuideModal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    document.body.appendChild(m); }
+  m.innerHTML=`<div style="background:var(--bg);border-radius:14px;padding:26px;max-width:440px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.35)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <h3 style="margin:0;font-size:19px">📲 Instalar Kmassada Hub</h3>
+      <button onclick="document.getElementById('installGuideModal').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--txt);line-height:1">✕</button>
+    </div>
+    <div style="line-height:1.8;font-size:15px">${steps}</div>
+    <div style="margin-top:22px;display:flex;gap:8px">
+      <a href="https://kmassadacatering.github.io/kmassada-hub/" target="_blank"
+        style="flex:1;text-align:center;background:var(--primary);color:#fff;padding:11px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">🌐 Abrir no Chrome</a>
+      <button onclick="document.getElementById('installGuideModal').remove()"
+        style="flex:1;background:var(--hover);border:none;border-radius:8px;padding:11px;cursor:pointer;font-size:14px;font-weight:600;color:var(--txt)">Fechar</button>
+    </div>
+  </div>`;
+  m.style.display='flex';
+  m.onclick=(e)=>{ if(e.target===m) m.remove(); };
 }
 
 // === EMAIL PANEL RESIZER ===
