@@ -1484,12 +1484,68 @@ function switchInstallTab(id){
 function adjustEmailWidth(delta){
   const el = document.getElementById('elist');
   if(!el) return;
-  const newW = Math.max(200, Math.min(600, el.offsetWidth + delta));
+  const newW = Math.max(200, Math.min(700, el.offsetWidth + delta));
   el.style.width = newW + 'px';
   const val = document.getElementById('ewidthval');
   if(val) val.textContent = Math.round(newW) + 'px';
   localStorage.setItem('emailListWidth', newW);
 }
+
+// === RESIZER DRAG ===
+(function(){
+  const resizer = document.getElementById('eresizer');
+  if(!resizer) return;
+
+  // Restore saved width
+  const saved = localStorage.getItem('emailListWidth');
+  if(saved){
+    const el = document.getElementById('elist');
+    if(el) el.style.width = saved + 'px';
+  }
+
+  let dragging = false;
+  let startX = 0;
+  let startW = 0;
+
+  function startDrag(e){
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    const elist = document.getElementById('elist');
+    startW = elist ? elist.offsetWidth : 360;
+    resizer.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    e.preventDefault();
+  }
+
+  function onDrag(e){
+    if(!dragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const delta = clientX - startX;
+    const elist = document.getElementById('elist');
+    if(!elist) return;
+    const newW = Math.max(200, Math.min(700, startW + delta));
+    elist.style.width = newW + 'px';
+    e.preventDefault();
+  }
+
+  function stopDrag(){
+    if(!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.userSelect = '';
+    document.body.style.cursor = '';
+    const elist = document.getElementById('elist');
+    if(elist) localStorage.setItem('emailListWidth', elist.offsetWidth);
+  }
+
+  resizer.addEventListener('mousedown', startDrag);
+  resizer.addEventListener('touchstart', startDrag, {passive:false});
+  document.addEventListener('mousemove', onDrag);
+  document.addEventListener('touchmove', onDrag, {passive:false});
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchend', stopDrag);
+})();
 
 </script>
 
