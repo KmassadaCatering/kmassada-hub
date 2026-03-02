@@ -293,9 +293,61 @@ body{
 [data-layout="mobile"] .sni { padding: 8px 12px !important; font-size: 13px !important; }
 [data-layout="mobile"] .dlayout { flex-direction: column !important; }
 [data-layout="mobile"] .dtree { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; }
-[data-layout="mobile"] #view-drive.on,[data-layout="mobile"] #view-settings.on,[data-layout="mobile"] #view-sys.on { overflow-y: auto !important; }
-[data-layout="mobile"] .dmain { overflow-y: visible !important; }
-[data-layout="mobile"] .scont { overflow-y: visible !important; }
+[data-layout="mobile"] #view-drive.on {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+}
+[data-layout="mobile"] #view-drive.on .dlayout {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-shrink: 0 !important;
+  min-height: min-content !important;
+}
+[data-layout="mobile"] #view-drive.on .dtree {
+  max-height: 180px !important;
+  overflow-y: auto !important;
+  flex-shrink: 0 !important;
+  border-right: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  width: 100% !important;
+}
+[data-layout="mobile"] #view-drive.on .dmain {
+  flex-shrink: 0 !important;
+  overflow-y: visible !important;
+}
+[data-layout="mobile"] #view-settings.on {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+}
+[data-layout="mobile"] #view-settings.on .slayout {
+  flex-shrink: 0 !important;
+  overflow: visible !important;
+  min-height: min-content !important;
+  flex-direction: column !important;
+}
+[data-layout="mobile"] #view-settings.on .snav2 {
+  width: 100% !important;
+  border-right: none !important;
+  border-bottom: 1px solid var(--border) !important;
+  max-height: 120px !important;
+  overflow-y: auto !important;
+  flex-shrink: 0 !important;
+}
+[data-layout="mobile"] #view-settings.on .scont {
+  flex-shrink: 0 !important;
+  overflow-y: visible !important;
+}
+[data-layout="mobile"] #view-sys.on {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+}
+[data-layout="mobile"] #view-sys.on > * {
+  flex-shrink: 0 !important;
+  min-height: min-content !important;
+}
 [data-layout="mobile"] .lcard { width: 92vw !important; max-width: 380px !important; padding: 32px 24px !important; }
 
 /* Auto-responsive fallback */
@@ -467,7 +519,6 @@ body{
   </div>
   <div class="dmain">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <button id="dback-top" class="btn bs bsm" onclick="drivGoBack()" style="display:none">← Voltar</button>
       <div class="bc" id="dbc"></div>
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="btn bs bsm" onclick="openFolderMod()">📁 Nova Pasta</button>
@@ -1284,8 +1335,7 @@ async function navDrive(fId,name){
 }
 function updateDriveBackBtns(){
   const show=bcs.length>1;
-  const bt=ge('dback-top');const bb=ge('dback-bot');
-  if(bt)bt.style.display=show?'':'none';
+  const bt=  if(bt)bt.style.display=show?'':'none';
   if(bb)bb.style.display=show?'':'none';
 }
 function drivGoBack(){
