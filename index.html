@@ -383,7 +383,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
     <button class="btn bs bsm" onclick="sv('settings','general')" title="Configurações" style="font-size:16px;padding:5px 9px">⚙️</button>
     <button id="installBtn" onclick="installApp()" title="Instalar como App" style="display:flex;background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;align-items:center;gap:4px;white-space:nowrap">📲 Instalar</button>
     <button class="btn bs bsm" onclick="toggleDark()" id="btnd">🌙</button>
-    <span style="font-size:10px;opacity:0.45;white-space:nowrap" title="Versão">v02/03 12:10</span>
+    <span style="font-size:10px;opacity:0.45;white-space:nowrap" title="Versão">v02/03 12:13</span>
     <button class="btn bp bsm" id="tbact" onclick="openCompose()">✏️ Escrever</button>
     <button class="btn bs bsm" onclick="doPrint()" title="Imprimir">🖨️</button>
     <div id="view-toggle" style="display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:2px">
@@ -1455,7 +1455,6 @@ function updateInstallBtn(){
   const btn = document.getElementById('installBtn');
   if(!btn) return;
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  if(isStandalone){ btn.style.display='none'; return; }
   btn.style.display = 'flex';
   if(deferredPrompt){
     btn.innerHTML = '⬇ Instalar';
