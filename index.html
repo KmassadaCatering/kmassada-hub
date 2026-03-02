@@ -755,14 +755,20 @@ let cfg={
 };
 
 function downloadShortcut(){
-  const url='https://kmassadacatering.github.io/kmassada-hub/';
-  const content='[InternetShortcut]\nURL='+url+'\nIconFile='+url+'icon-192.png\nIconIndex=0';
-  const blob=new Blob([content],{type:'text/plain'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='Kmassada Hub.url';
-  a.click();
-  URL.revokeObjectURL(a.href);
+  try{
+    const url='https://kmassadacatering.github.io/kmassada-hub/';
+    const content='[InternetShortcut]\r\nURL='+url+'\r\nIconFile='+url+'icon-192.png\r\nIconIndex=0';
+    const blob=new Blob([content],{type:'application/octet-stream'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='Kmassada Hub.url';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(a.href); },1000);
+    toast('⬇️ Ficheiro descarregado! Move para o Ambiente de Trabalho.','ok');
+  } catch(e){
+    toast('❌ Erro: '+e.message,'err');
+  }
 }
 
 function triggerPWAInstall(){
@@ -1379,6 +1385,24 @@ function repairFull(){
     localStorage.clear();
     sessionStorage.clear();
     location.reload();
+  }
+}
+
+function clearAll(){
+  try{ google.accounts.id.disableAutoSelect(); } catch(e){}
+  localStorage.clear();
+  sessionStorage.clear();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+      return caches.keys();
+    }).then(keys=>Promise.all(keys.map(k=>caches.delete(k)))).then(()=>{
+      toast('🗑️ Tudo limpo! A recarregar...','ok');
+      setTimeout(()=>location.reload(true),1000);
+    }).catch(()=>location.reload(true));
+  } else {
+    toast('🗑️ Tudo limpo! A recarregar...','ok');
+    setTimeout(()=>location.reload(true),1000);
   }
 }
 
