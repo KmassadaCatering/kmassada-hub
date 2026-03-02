@@ -165,7 +165,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ai-title{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px}
 .sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 @media print{#sidebar,.topbar,.elist,.dtree,.snav2,.eactions,.btn,.mo{display:none!important}.edetail,.dmain,.scont{width:100%!important}body{background:#fff;color:#000}}
-@media(max-width:768px){#sidebar{position:fixed;left:-250px;height:100vh;z-index:500}#sidebar.open{left:0}.fr{grid-template-columns:1fr}}
+@media(max-width:768px){.fr{grid-template-columns:1fr}}
 .cat-c{color:#1e88e5}.cat-e{color:#43a047}.cat-f{color:#fb8c00}.cat-p{color:#8e24aa}
 .folder-cat{border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
 .folder-cat h4{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px}
@@ -174,8 +174,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* MOBILE RESPONSIVO */
 @media(max-width:768px){
-  #sidebar{position:fixed;left:-260px;height:100vh;z-index:200;transition:left .3s ease}
-  #sidebar.open{left:0}
   .btn-menu{display:flex!important}
   #main{width:100vw}
   .elist{width:100%;border-right:none}
@@ -494,6 +492,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 <div class="md wide">
   <div class="mh"><h3>✏️ Escrever Email</h3><button class="bx" onclick="closeModal('m-compose')">×</button></div>
   <div class="mb">
+    <div class="fg"><label>De</label><input class="fc" id="cfrom" placeholder="geralkmassada@gmail.com" type="email"></div>
     <div class="fg"><label>Para</label><input class="fc" id="cto" placeholder="destinatario@email.com" type="email"></div>
     <div class="fr"><div class="fg"><label>CC</label><input class="fc" id="ccc" placeholder="cc@email.com"></div>
     <div class="fg"><label>CCO</label><input class="fc" id="cbcc" placeholder="cco@email.com"></div></div>
@@ -883,13 +882,13 @@ async function doESrch(){const q=ge('es').value.trim();if(!q)return;ge('elist').
 function doSrch(){ge('es').value=ge('srch-i').value;doESrch();}
 
 // COMPOSE
-function openCompose(){replyId=null;ge('cto').value='';ge('ccc').value='';ge('cbcc').value='';ge('csub').value='';ge('cbody').value=cfg.signature?'\n\n-- \n'+cfg.signature:'';ge('aiprompt').value='';openModal('m-compose');}
+function openCompose(){replyId=null;ge('cfrom').value=cfg.email||'geralkmassada@gmail.com';ge('cto').value='';ge('ccc').value='';ge('cbcc').value='';ge('csub').value='';ge('cbody').value=cfg.signature?'\n\n-- \n'+cfg.signature:'';ge('aiprompt').value='';openModal('m-compose');}
 function openReply(id,fr,sub){replyId=id;ge('cto').value=fr.replace(/\'/g,"'").replace(/<.*>/,'').trim();ge('csub').value='Re: '+sub.replace(/\'/g,"'").replace(/^Re: /i,'');ge('cbody').value='\n\n-- \n'+cfg.signature;openModal('m-compose');}
 async function sendEmail(){
   const to=ge('cto').value.trim(),sub=ge('csub').value.trim(),body=ge('cbody').value;
   const cc=ge('ccc').value.trim(),bcc=ge('cbcc').value.trim();
   if(!to||!sub){toast('Preenche destinatário e assunto','warn');return;}
-  let hdr=`From: ${cfg.senderName} <${cfg.email}>\r\nTo: ${to}\r\nSubject: ${sub}\r\nContent-Type: text/plain; charset=utf-8`;
+  const fromEmail=ge('cfrom').value.trim()||cfg.email;let hdr=`From: ${cfg.senderName} <${fromEmail}>\r\nTo: ${to}\r\nSubject: ${sub}\r\nContent-Type: text/plain; charset=utf-8`;
   if(cc)hdr+=`\r\nCc: ${cc}`;if(bcc)hdr+=`\r\nBcc: ${bcc}`;if(replyId)hdr+=`\r\nIn-Reply-To: ${replyId}`;
   const raw=btoa(unescape(encodeURIComponent(hdr+'\r\n\r\n'+body))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   const r=await api('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',body:JSON.stringify({raw})});
