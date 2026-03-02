@@ -3,29 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-  <script>if('serviceWorker' in navigator){ navigator.serviceWorker.register('/kmassada-hub/sw.js')
-        .then(reg => {
-          // Force check for SW update on every load
-          reg.update();
-          // Listen for new SW and reload automatically
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated') {
-                console.log('New SW activated - reloading...');
-                window.location.reload();
-              }
-            });
-          });
-        });
-    } }</script>
+  <script>if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/kmassada-hub/sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if(newWorker.state === 'activated') {
+          window.location.reload();
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}</script>
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kmassada Hub">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="app-version" content="202603021141">
+  <meta name="app-version" content="202603021210">
   <meta name="theme-color" content="#c8860a">
   <link rel="apple-touch-icon" href="logo.png">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -384,7 +383,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
     <button class="btn bs bsm" onclick="sv('settings','general')" title="Configurações" style="font-size:16px;padding:5px 9px">⚙️</button>
     <button id="installBtn" onclick="installApp()" title="Instalar como App" style="display:flex;background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:13px;font-weight:600;align-items:center;gap:4px;white-space:nowrap">📲 Instalar</button>
     <button class="btn bs bsm" onclick="toggleDark()" id="btnd">🌙</button>
-    <span style="font-size:10px;opacity:0.45;white-space:nowrap" title="Versão">v02/03 11:42</span>
+    <span style="font-size:10px;opacity:0.45;white-space:nowrap" title="Versão">v02/03 12:10</span>
     <button class="btn bp bsm" id="tbact" onclick="openCompose()">✏️ Escrever</button>
     <button class="btn bs bsm" onclick="doPrint()" title="Imprimir">🖨️</button>
     <div id="view-toggle" style="display:flex;gap:3px;background:var(--bg2);border-radius:8px;padding:2px">
