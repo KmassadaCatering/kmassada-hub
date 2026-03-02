@@ -738,7 +738,7 @@ function signIn(){
         tok=r.access_token;fetchUser();
       }
     });
-    tclient.requestAccessToken({prompt:signInHint?'':'select_account'});
+    tclient.requestAccessToken({prompt:'select_account'});
   }
   if(typeof google!=='undefined'&&google.accounts){
     doAuth();
@@ -1381,42 +1381,81 @@ async function installApp(){
   showInstallGuide();
 }
 
-function showInstallGuide(){
+function showInstallGuide(forceTab){
   const ua = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isAndroid = /Android/.test(ua);
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua) && !/OPR/.test(ua);
   const isEdge = /Edg/.test(ua);
   const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
-  let steps='';
-  if(isIOS && isSafari){
-    steps=`<p>No <strong>Safari</strong> do iPhone/iPad:</p><ol>
-      <li>Toca no botão <strong>Partilhar</strong> 🔗 (parte inferior do ecrã)</li>
-      <li>Desliza para baixo → toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
-      <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>`;
-  } else if(isAndroid && isChrome){
-    steps=`<p>No <strong>Chrome Android</strong>:</p><ol>
+  const APP_URL = 'https://kmassadacatering.github.io/kmassada-hub/';
+  const QR_URL = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(APP_URL)}`;
+
+  // Auto-detect default tab
+  let defaultTab = forceTab || (isAndroid ? 'android' : isIOS ? 'ios' : 'pc');
+
+  const tabs = [
+    { id:'pc',      icon:'🖥️', label:'Windows PC' },
+    { id:'android', icon:'🤖', label:'Android' },
+    { id:'ios',     icon:'🍎', label:'iPhone/iPad' },
+    { id:'qr',      icon:'📷', label:'QR Code' },
+  ];
+
+  const content = {
+    pc: `<p>No <strong>Chrome PC</strong>:</p><ol>
+      <li>Clica nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
+      <li>Clica em <strong>"Instalar Kmassada Hub..."</strong></li>
+      <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Também podes ver o ícone <strong>⊕</strong> na barra de endereços</p>
+      <p style="margin-top:6px;font-size:13px;opacity:0.7">No <strong>Edge</strong>: Menu ··· → Aplicações → "Instalar este site como aplicação"</p>`,
+    android: `<p>No <strong>Chrome Android</strong>:</p><ol>
+      <li>Abre o link: <a href="${APP_URL}" target="_blank" style="color:var(--primary)">${APP_URL}</a></li>
       <li>Toca nos <strong>três pontinhos ⋮</strong> (canto superior direito)</li>
       <li>Toca em <strong>"Adicionar ao ecrã inicial"</strong> ou <strong>"Instalar app"</strong></li>
       <li>Confirma tocando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:14px;opacity:0.7">💡 Usa o Chrome — outros browsers podem não ter esta opção</p>`;
-  } else if(isChrome){
-    steps=`<p>No <strong>Chrome PC</strong>:</p><ol>
-      <li>Clica nos <strong>três pontinhos ⋮</strong> (canto superior direito do Chrome)</li>
-      <li>Clica em <strong>"Instalar Kmassada Hub..."</strong></li>
-      <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>
-      <p style="margin-top:10px;font-size:14px;opacity:0.7">💡 Também podes procurar o ícone <strong>⊕</strong> na barra de endereços do Chrome</p>`;
-  } else if(isEdge){
-    steps=`<p>No <strong>Microsoft Edge</strong>:</p><ol>
-      <li>Clica nos <strong>três pontos ···</strong> (canto superior direito)</li>
-      <li>Clica em <strong>"Aplicações"</strong> → <strong>"Instalar este site como aplicação"</strong></li>
-      <li>Confirma clicando em <strong>"Instalar"</strong></li></ol>`;
-  } else {
-    steps=`<p>Para instalar, usa o <strong>Google Chrome</strong>:</p><ol>
-      <li>Abre o site no Chrome</li>
-      <li>Clica nos <strong>três pontinhos ⋮</strong></li>
-      <li>Seleciona <strong>"Instalar Kmassada Hub"</strong></li></ol>`;
+      <p style="margin-top:10px;font-size:13px;opacity:0.7">💡 Usa o separador QR Code para abrir diretamente no telemóvel</p>`,
+    ios: `<p>No <strong>Safari</strong> (iPhone/iPad):</p><ol>
+      <li>Abre o link no Safari: <a href="${APP_URL}" target="_blank" style="color:var(--primary)">${APP_URL}</a></li>
+      <li>Toca no botão <strong>Partilhar</strong> 🔗 (em baixo)</li>
+      <li>Desliza → toca em <strong>"Adicionar ao Ecrã Principal"</strong></li>
+      <li>Confirma tocando em <strong>"Adicionar"</strong></li></ol>`,
+    qr: `<p style="text-align:center">Aponta a câmara do telemóvel para o QR Code:</p>
+      <div style="text-align:center;margin:16px 0">
+        <img src="${QR_URL}" alt="QR Code" style="border-radius:10px;border:3px solid var(--primary);width:200px;height:200px">
+      </div>
+      <p style="text-align:center;font-size:13px;opacity:0.7">Depois de abrir no telemóvel, segue as instruções do separador <strong>Android</strong> ou <strong>iPhone</strong></p>
+      <p style="text-align:center;margin-top:8px"><a href="${APP_URL}" target="_blank" style="color:var(--primary);font-size:13px">${APP_URL}</a></p>`,
+  };
+
+  let m = document.getElementById('installGuideModal');
+  if(!m){ m=document.createElement('div'); m.id='installGuideModal';
+    m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    m.addEventListener('click', e=>{ if(e.target===m) m.remove(); });
+    document.body.appendChild(m); }
+
+  function renderModal(activeTab){
+    const tabsHtml = tabs.map(t=>`
+      <button onclick="document.getElementById('installGuideModal').querySelector('.ig-body').innerHTML=\`${content[t.id].replace(/`/g,"'")}\`;document.querySelectorAll('.ig-tab').forEach(x=>x.style.fontWeight='normal');this.style.fontWeight='bold';this.style.borderBottom='3px solid var(--primary)'"
+        class="ig-tab" style="background:none;border:none;border-bottom:${activeTab===t.id?'3px solid var(--primary)':'3px solid transparent'};padding:8px 10px;cursor:pointer;font-size:14px;font-weight:${activeTab===t.id?'bold':'normal'};color:var(--text)">${t.icon} ${t.label}</button>
+    `).join('');
+    m.innerHTML=`<div style="background:var(--bg);border-radius:14px;padding:26px;max-width:460px;width:100%;box-shadow:0 12px 48px rgba(0,0,0,.35)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <strong style="font-size:17px">📲 Instalar Kmassada Hub</strong>
+        <button onclick="document.getElementById('installGuideModal').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <div style="display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap">${tabsHtml}</div>
+      <div class="ig-body" style="font-size:15px;line-height:1.7">${content[activeTab]}</div>
+    </div>`;
   }
+  renderModal(defaultTab);
+  // Re-wire tab clicks properly
+  m.querySelectorAll('.ig-tab').forEach((btn, i)=>{
+    btn.onclick = ()=>{
+      renderModal(tabs[i].id);
+      // re-wire again after re-render
+      m.querySelectorAll('.ig-tab').forEach((b2,j)=>{ b2.onclick=()=>{ renderModal(tabs[j].id); m.querySelectorAll('.ig-tab').forEach((b3,k)=>b3.onclick=()=>renderModal(tabs[k].id)); }; });
+    };
+  });
   let m = document.getElementById('installGuideModal');
   if(!m){ m=document.createElement('div'); m.id='installGuideModal';
     m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
