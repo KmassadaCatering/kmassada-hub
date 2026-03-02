@@ -113,7 +113,10 @@ body{
 .eitem:hover{background:var(--bg)}
 
 .echk{width:20px;height:20px;border-radius:4px;border:2px solid var(--border);background:var(--surface);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:var(--tr);font-size:12px}
+.eitem .echk{display:none}
+.selmode .eitem .echk{display:flex}
 .eitem.msel .echk{background:var(--primary);border-color:var(--primary);color:#fff}
+.selmode .eitem{cursor:pointer}
 .eitem.msel{background:rgba(200,134,10,.12)!important}
 .ebulkbar{display:none;padding:8px 12px;background:var(--primary);color:#fff;gap:6px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:10;border-bottom:1px solid rgba(0,0,0,.2)}
 .ebulkbar.show{display:flex}
@@ -1024,22 +1027,27 @@ function toggleSelMode(){
   selIds.clear();
   const btn=ge('selModeBtn');
   const bar=ge('ebulkbar');
-  if(btn){btn.classList.toggle('active',selMode);btn.title=selMode?'Cancelar seleção':'Seleção múltipla';}
+  const list=ge('elist');
+  if(btn){
+    btn.classList.toggle('active',selMode);
+    btn.textContent=selMode?'✕ Cancelar':'☑ Selecionar';
+  }
   if(bar){bar.classList.toggle('show',selMode);}
-  // Show/hide checkboxes
-  document.querySelectorAll('.echk').forEach(c=>c.style.display=selMode?'flex':'none');
+  if(list){list.classList.toggle('selmode',selMode);}
   document.querySelectorAll('.eitem.msel').forEach(e=>e.classList.remove('msel'));
   updateBulkBar();
 }
 
 function eitemClick(id,el){
   if(selMode){
+    el=el||document.querySelector('.eitem[data-id="'+id+'"]');
+    if(!el)return;
     if(selIds.has(id)){selIds.delete(id);el.classList.remove('msel');}
     else{selIds.add(id);el.classList.add('msel');}
     updateBulkBar();
-  } else {
-    openEmail(id,el);
+    return;
   }
+  openEmail(id,el);
 }
 
 function updateBulkBar(){
@@ -1097,8 +1105,8 @@ function renderEmails(emails){
     const sub=h('Subject')||'(sem assunto)';
     const dt=new Date(parseInt(e.internalDate)).toLocaleDateString('pt-PT',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
     const unr=e.labelIds?.includes('UNREAD'),str=e.labelIds?.includes('STARRED');
-    return `<div class="eitem ${unr?'unread':''}" data-id="${e.id}" onclick="eitemClick('${e.id}',this)" ontouchstart="touchStart(event)" ontouchend="touchEnd(event,()=>eitemClick('${e.id}',this))" style="display:flex;align-items:flex-start;gap:10px">
-      <div class="echk" id="chk_${e.id}" style="margin-top:4px;display:none">✓</div>
+    return `<div class="eitem ${unr?'unread':''}" data-id="${e.id}" onclick="eitemClick('${e.id}',this)" style="display:flex;align-items:flex-start;gap:10px">
+      <div class="echk" id="chk_${e.id}" style="margin-top:4px">✓</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between"><span class="efrom">${esc(fr)}</span><span class="edate">${dt}</span></div>
         <div class="esubj">${str?'⭐ ':''}${esc(sub)}</div>
