@@ -196,9 +196,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 [data-layout="pc"] #main { margin-left: 0 !important; }
 [data-layout="pc"] .elayout { grid-template-columns: 320px 1fr !important; }
 
-[data-layout="mobile"] #sidebar { width: 260px !important; position: fixed !important; left: -260px !important; z-index: 999 !important; transition: transform 0.3s !important; }
-[data-layout="mobile"] #sidebar:not(.sb-hidden) { transform: translateX(260px) !important; }
-[data-layout="mobile"] #sidebar.sb-open { transform: translateX(260px) !important; }
+[data-layout="mobile"] #sidebar { width: 260px !important; position: fixed !important; left: 0 !important; transform: translateX(-260px) !important; z-index: 999 !important; transition: transform 0.3s !important; }
+
+[data-layout="mobile"] #sidebar.sb-open { transform: translateX(0) !important; }
 [data-layout="mobile"] #app { grid-template-columns: 1fr !important; }
 [data-layout="mobile"] .elayout { grid-template-columns: 1fr !important; }
 [data-layout="mobile"] .edetail { display: none !important; }
@@ -206,7 +206,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 [data-layout="mobile"] .elist { border-right: none !important; }
 
 /* PC specific styles */
-[data-layout="pc"] .ni { padding: 9px 14px !important; }
+[data-layout="pc"] #sidebar.collapsed { width: 60px !important; min-width: 60px !important; overflow: hidden !important; }
+  [data-layout="pc"] #sidebar.collapsed .slabel,
+  [data-layout="pc"] #sidebar.collapsed .stitle,
+  [data-layout="pc"] #sidebar.collapsed .ssub,
+  [data-layout="pc"] #sidebar.collapsed .nbadge,
+  [data-layout="pc"] #sidebar.collapsed .nlabel,
+  [data-layout="pc"] #sidebar.collapsed .slogo-text { display: none !important; }
+  [data-layout="pc"] #sidebar.collapsed .slogo { justify-content: center !important; padding: 12px !important; }
+  [data-layout="pc"] #sidebar.collapsed .ni { justify-content: center !important; padding: 12px 8px !important; }
+  [data-layout="pc"] #app.sidebar-collapsed { grid-template-columns: 60px 1fr !important; }
+  [data-layout="pc"] .ni { padding: 9px 14px !important; }
 [data-layout="pc"] .topbar { padding: 12px 20px !important; }
 [data-layout="pc"] #app { height: 100vh; overflow: hidden; }
 [data-layout="pc"] #main { height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -780,7 +790,12 @@ function toggleSB(){
     return;
   }
   // Original PC logic below:
-  const _dummy = null; // fallthroughge('sidebar').classList.toggle('col');ge('sidebar').classList.toggle('open');}
+  // PC: toggle collapsed
+  const sb2 = document.getElementById('sidebar');
+  const app2 = document.getElementById('app');
+  if(sb2) sb2.classList.toggle('collapsed');
+  if(app2) app2.classList.toggle('sidebar-collapsed');
+}
 
 // API
 async function api(url,opts={}){
