@@ -295,8 +295,7 @@ body{
 
 
 /* ===== REPAIR BUTTON ===== */
-#repairBtn{position:fixed;bottom:20px;left:20px;z-index:9999;background:#e74c3c;color:#fff;border:none;border-radius:50%;width:52px;height:52px;font-size:22px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.3);transition:all .2s;display:flex;align-items:center;justify-content:center;}
-#repairBtn:hover{transform:scale(1.1);background:#c0392b;}
+
 #repairModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;align-items:center;justify-content:center;}
 #repairModal.show{display:flex;}
 #repairBox{background:var(--surface);border-radius:16px;padding:28px;max-width:340px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.3);}
@@ -371,6 +370,7 @@ body{
   <div class="slabel">Sistema</div>
   <div class="ni" onclick="sv('settings','general')" id="n-cfg"><span class="nicon">⚙️</span><span class="nlabel">Configurações</span></div>
   <div class="ni" onclick="sv('sys','')" id="n-sys"><span class="nicon">🔧</span><span class="nlabel">Sistema</span></div>
+  <div class="ni" onclick="showRepair()" style="border-left:3px solid #e74c3c"><span class="nicon">🔨</span><span class="nlabel" style="color:#e74c3c;font-weight:600">Reparar App</span></div>
 </div>
 <div class="suser">
   <div class="uavatar" id="uav">👤</div>
@@ -1404,7 +1404,7 @@ window.addEventListener('resize', ()=>{
 </script>
 
 <!-- REPAIR BUTTON -->
-<button id="repairBtn" title="Reparar app" onclick="showRepair()">🔧</button>
+
 <button id="mob-float-back" onclick="closeEmailDetail()">← Voltar</button>
 <div id="repairModal" onclick="if(event.target===this)closeRepair()">
   <div id="repairBox">
