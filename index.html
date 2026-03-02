@@ -1482,10 +1482,13 @@ function switchInstallTab(id){
 
 
 function adjustEmailWidth(delta){
-  const el = document.getElementById('elist');
-  if(!el) return;
-  const newW = Math.max(200, Math.min(700, el.offsetWidth + delta));
-  el.style.width = newW + 'px';
+  // Target the .elist panel wrapper (previousSibling of resizer), not #elist inner div
+  const resizer = document.getElementById('eresizer');
+  const panel = resizer ? resizer.previousElementSibling : null;
+  if(!panel) return;
+  const newW = Math.max(180, Math.min(700, panel.offsetWidth + delta));
+  panel.style.width = newW + 'px';
+  panel.style.minWidth = newW + 'px';
   const val = document.getElementById('ewidthval');
   if(val) val.textContent = Math.round(newW) + 'px';
   localStorage.setItem('emailListWidth', newW);
@@ -1496,11 +1499,14 @@ function adjustEmailWidth(delta){
   const resizer = document.getElementById('eresizer');
   if(!resizer) return;
 
+  // The resizable panel is the PREVIOUS sibling of the resizer (the .elist wrapper div)
+  function getPanel(){ return resizer.previousElementSibling; }
+
   // Restore saved width
   const saved = localStorage.getItem('emailListWidth');
   if(saved){
-    const el = document.getElementById('elist');
-    if(el) el.style.width = saved + 'px';
+    const panel = getPanel();
+    if(panel) panel.style.width = saved + 'px';
   }
 
   let dragging = false;
@@ -1510,22 +1516,25 @@ function adjustEmailWidth(delta){
   function startDrag(e){
     dragging = true;
     startX = e.touches ? e.touches[0].clientX : e.clientX;
-    const elist = document.getElementById('elist');
-    startW = elist ? elist.offsetWidth : 360;
+    const panel = getPanel();
+    startW = panel ? panel.offsetWidth : 360;
     resizer.classList.add('dragging');
     document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
     document.body.style.cursor = 'col-resize';
     e.preventDefault();
+    e.stopPropagation();
   }
 
   function onDrag(e){
     if(!dragging) return;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const delta = clientX - startX;
-    const elist = document.getElementById('elist');
-    if(!elist) return;
-    const newW = Math.max(200, Math.min(700, startW + delta));
-    elist.style.width = newW + 'px';
+    const panel = getPanel();
+    if(!panel) return;
+    const newW = Math.max(180, Math.min(700, startW + delta));
+    panel.style.width = newW + 'px';
+    panel.style.minWidth = newW + 'px';
     e.preventDefault();
   }
 
@@ -1534,9 +1543,10 @@ function adjustEmailWidth(delta){
     dragging = false;
     resizer.classList.remove('dragging');
     document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
     document.body.style.cursor = '';
-    const elist = document.getElementById('elist');
-    if(elist) localStorage.setItem('emailListWidth', elist.offsetWidth);
+    const panel = getPanel();
+    if(panel) localStorage.setItem('emailListWidth', panel.offsetWidth);
   }
 
   resizer.addEventListener('mousedown', startDrag);
