@@ -293,7 +293,10 @@ body{
 [data-layout="mobile"] .sni { padding: 8px 12px !important; font-size: 13px !important; }
 [data-layout="mobile"] .dlayout { flex-direction: column !important; }
 [data-layout="mobile"] .dtree { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border) !important; }
-[data-layout="mobile"] #view-drive.on {
+[data-layout="mobile"] #view-drive.on,
+[data-layout="mobile"] #view-settings.on,
+[data-layout="mobile"] #view-sys.on {
+  display: block !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   overscroll-behavior-y: contain !important;
@@ -301,52 +304,23 @@ body{
 [data-layout="mobile"] #view-drive.on .dlayout {
   display: flex !important;
   flex-direction: column !important;
-  flex-shrink: 0 !important;
-  min-height: min-content !important;
 }
 [data-layout="mobile"] #view-drive.on .dtree {
-  max-height: 180px !important;
+  max-height: 200px !important;
   overflow-y: auto !important;
-  flex-shrink: 0 !important;
+  width: 100% !important;
   border-right: none !important;
   border-bottom: 1px solid var(--border) !important;
-  width: 100% !important;
 }
 [data-layout="mobile"] #view-drive.on .dmain {
-  flex-shrink: 0 !important;
-  overflow-y: visible !important;
-}
-[data-layout="mobile"] #view-settings.on {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior-y: contain !important;
+  overflow: visible !important;
 }
 [data-layout="mobile"] #view-settings.on .slayout {
-  flex-shrink: 0 !important;
   overflow: visible !important;
-  min-height: min-content !important;
   flex-direction: column !important;
 }
-[data-layout="mobile"] #view-settings.on .snav2 {
-  width: 100% !important;
-  border-right: none !important;
-  border-bottom: 1px solid var(--border) !important;
-  max-height: 120px !important;
-  overflow-y: auto !important;
-  flex-shrink: 0 !important;
-}
 [data-layout="mobile"] #view-settings.on .scont {
-  flex-shrink: 0 !important;
-  overflow-y: visible !important;
-}
-[data-layout="mobile"] #view-sys.on {
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch !important;
-  overscroll-behavior-y: contain !important;
-}
-[data-layout="mobile"] #view-sys.on > * {
-  flex-shrink: 0 !important;
-  min-height: min-content !important;
+  overflow: visible !important;
 }
 [data-layout="mobile"] .lcard { width: 92vw !important; max-width: 380px !important; padding: 32px 24px !important; }
 
@@ -1335,7 +1309,7 @@ async function navDrive(fId,name){
 }
 function updateDriveBackBtns(){
   const show=bcs.length>1;
-  const bt=  if(bt)bt.style.display=show?'':'none';
+  const bb=ge('dback-bot');
   if(bb)bb.style.display=show?'':'none';
 }
 function drivGoBack(){
