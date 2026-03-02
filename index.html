@@ -887,7 +887,14 @@ function renderEmails(emails){
 }
 function closeEmailDetail(){
   const d=ge('edetail');
-  if(d) d.classList.remove('open');
+  if(d){
+    d.classList.remove('mob-open');
+    d.classList.remove('open');
+  }
+  const elist=document.querySelector('.elist');
+  if(elist){
+    elist.classList.remove('mob-hidden');
+  }
 }
 async function openEmail(id,el){
   document.querySelectorAll('.eitem').forEach(e=>e.classList.remove('sel'));
