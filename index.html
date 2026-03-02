@@ -893,7 +893,7 @@ async function openEmail(id,el){
   document.querySelectorAll('.eitem').forEach(e=>e.classList.remove('sel'));
   if(el)el.classList.add('sel');
   const p=ge('edetail');
-  const isMob = document.documentElement.getAttribute('data-layout')==='mobile';
+  const isMob = window.innerWidth <= 900 || document.documentElement.getAttribute('data-layout')==='mobile';
   if(isMob){
     p.classList.add('mob-open');
     const elist = document.querySelector('.elist');
@@ -1199,7 +1199,7 @@ function setLayout(mode){
   if(app){ app.classList.remove('sidebar-collapsed'); }
   // Clean mobile email state
   document.getElementById('edetail')?.classList.remove('mob-open','open');
-  document.querySelector('.elist-panel')?.classList.remove('mob-hidden');
+  document.querySelector('.elist')?.classList.remove('mob-hidden');
   
   document.documentElement.setAttribute('data-layout', mode);
   localStorage.setItem('kmhub_layout', mode);
@@ -1217,10 +1217,14 @@ function setLayout(mode){
   }
 }
 function detectLayout(){
+  const isMobile = window.innerWidth <= 900;
+  if(isMobile){
+    // Always mobile on small screens, ignore saved preference
+    setLayout('mobile');
+    return;
+  }
   const saved = localStorage.getItem('kmhub_layout');
-  if(saved){ setLayout(saved); return; }
-  const isMobile = window.innerWidth <= 768;
-  setLayout(isMobile ? 'mobile' : 'pc');
+  setLayout(saved || 'pc');
 }
 window.addEventListener('load', ()=>{
   detectLayout();
@@ -1258,7 +1262,7 @@ function repairSoft(){
   // Reset all state without reloading
   try {
     ge('edetail')?.classList.remove('mob-open','open'); document.querySelector('.elist')?.classList.remove('mob-hidden');
-    document.querySelector('.elist-panel')?.classList.remove('mob-hidden');
+    document.querySelector('.elist')?.classList.remove('mob-hidden');
     ge('sidebar')?.classList.remove('sb-open','collapsed');
     document.querySelector('.overlay')?.classList.remove('show');
     // Re-detect and apply layout
