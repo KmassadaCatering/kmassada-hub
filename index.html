@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
   <script>if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/kmassada-hub/sw.js').then(reg => {
+  navigator.serviceWorker.register('/kmassada-hub/sw.js').catch(e=>console.warn('SW:',e)).then(reg => {
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
