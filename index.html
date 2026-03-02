@@ -80,6 +80,12 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
 .elayout{display:flex;flex:1;overflow:hidden}
 .elist{width:360px;border-right:1px solid var(--border);overflow-y:auto;background:var(--surface);flex-shrink:0}
 .edetail{flex:1;overflow-y:auto;padding:20px}
+.eresizer{width:6px;cursor:col-resize;background:var(--border);flex-shrink:0;position:relative;transition:background 0.2s}
+.eresizer:hover,.eresizer.dragging{background:var(--primary)}
+.eresizer::after{content:'⋮';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:var(--text-muted);font-size:18px;pointer-events:none}
+.ewidth-btns{display:flex;gap:4px;align-items:center;margin-left:8px}
+.ewidth-btn{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:13px;color:var(--text);user-select:none}
+.ewidth-btn:hover{background:var(--primary);color:#fff}
 .emob-back{display:none;padding:12px 16px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600;font-size:15px}
 [data-layout="mobile"] .edetail.mob-open .emob-back{display:block !important}
 .eitem{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--tr);user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
@@ -374,6 +380,7 @@ body{font-family:'Calibri','Segoe UI',system-ui,sans-serif;font-size:18px;backgr
     </div>
     <div id="elist"><div class="loading"><div class="spin"></div> A carregar...</div></div>
   </div>
+  <div id="eresizer" class="eresizer" title="Arrasta para redimensionar"></div>
   <div class="edetail" id="edetail">
     <div class="empty"><div class="eico">📧</div><h3>Seleciona um email</h3><p>Clica num email para ler</p></div>
   </div>
@@ -928,6 +935,11 @@ async function openEmail(id,el){
   replyId=id;
   p.innerHTML=`
     <div class="emob-back" onclick="closeEmailDetail()">← Voltar à lista</div>
+    <div class="ewidth-btns" id="ewidthbtns" style="display:none">
+      <button class="ewidth-btn" onclick="adjustEmailWidth(-60)" title="Estreitar">◀</button>
+      <span id="ewidthval" style="font-size:12px;color:var(--text-muted);min-width:40px;text-align:center">360px</span>
+      <button class="ewidth-btn" onclick="adjustEmailWidth(60)" title="Alargar">▶</button>
+    </div>
     <div class="eactions">
       <button class="btn bs bsm" onclick="openReply('${id}','${esc(fr).replace(/'/g,"\'")}','${esc(sub).replace(/'/g,"\'")}')">↩️ Responder</button>
       <button class="btn bs bsm" onclick="toggleStar('${id}',${!star})">${star?'★ Estrela':'☆ Estrela'}</button>
@@ -1320,6 +1332,90 @@ function installPWA(){
     deferredInstall=null;
   });
 }
+
+// === EMAIL PANEL RESIZER ===
+(function(){
+  const resizer = document.getElementById('eresizer');
+  if(!resizer) return;
+  
+  let startX, startW, dragging = false;
+  
+  function getElist(){ return document.getElementById('elist'); }
+  function getLayout(){ return document.body.dataset.layout || 'pc'; }
+  
+  function startResize(e){
+    if(getLayout() !== 'pc') return;
+    dragging = true;
+    startX = e.touches ? e.touches[0].clientX : e.clientX;
+    startW = getElist().offsetWidth;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  }
+  
+  function doResize(e){
+    if(!dragging) return;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const newW = Math.max(200, Math.min(600, startW + (x - startX)));
+    getElist().style.width = newW + 'px';
+    const val = document.getElementById('ewidthval');
+    if(val) val.textContent = Math.round(newW) + 'px';
+  }
+  
+  function stopResize(){
+    if(!dragging) return;
+    dragging = false;
+    resizer.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    const w = getElist().offsetWidth;
+    localStorage.setItem('emailListWidth', w);
+  }
+  
+  resizer.addEventListener('mousedown', startResize);
+  resizer.addEventListener('touchstart', startResize, {passive:false});
+  document.addEventListener('mousemove', doResize);
+  document.addEventListener('touchmove', doResize, {passive:false});
+  document.addEventListener('mouseup', stopResize);
+  document.addEventListener('touchend', stopResize);
+  
+  // Restore saved width
+  const saved = localStorage.getItem('emailListWidth');
+  if(saved) {
+    const el = getElist();
+    if(el) el.style.width = saved + 'px';
+    const val = document.getElementById('ewidthval');
+    if(val) val.textContent = Math.round(saved) + 'px';
+  }
+  
+  // Show width buttons only on PC
+  function checkLayout(){
+    const btns = document.getElementById('ewidthbtns');
+    const res = document.getElementById('eresizer');
+    if(!btns || !res) return;
+    const isMob = getLayout() === 'mobile';
+    btns.style.display = isMob ? 'none' : 'flex';
+    res.style.display = isMob ? 'none' : '';
+  }
+  
+  // Watch layout changes
+  const obs = new MutationObserver(checkLayout);
+  obs.observe(document.body, {attributes:true, attributeFilter:['data-layout']});
+  window.addEventListener('load', checkLayout);
+  setTimeout(checkLayout, 500);
+})();
+
+function adjustEmailWidth(delta){
+  const el = document.getElementById('elist');
+  if(!el) return;
+  const newW = Math.max(200, Math.min(600, el.offsetWidth + delta));
+  el.style.width = newW + 'px';
+  const val = document.getElementById('ewidthval');
+  if(val) val.textContent = Math.round(newW) + 'px';
+  localStorage.setItem('emailListWidth', newW);
+}
+
 </script>
 
 </body>
