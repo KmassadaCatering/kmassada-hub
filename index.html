@@ -1139,51 +1139,6 @@ function savePrinter(){
 function delPrinter(i){if(!confirm('Apagar impressora?'))return;cfg.printers.splice(i,1);saveCfg2();renderPrinters();toast('🗑️ Impressora removida');}
 function setPDefault(i){cfg.printers.forEach((p,j)=>p.isDefault=j===i);saveCfg2();renderPrinters();toast('✅ Impressora padrão definida');}
 function printTest(i){const p=cfg.printers[i];const w=window.open('','_blank','width=400,height=300');w.document.write(`<html><body style="font-family:sans-serif;padding:20px"><h3>Teste de Impressão</h3><p><strong>Impressora:</strong> ${p.name}</p><p><strong>Tipo:</strong> ${p.type==='a4'?'A4/Laser':'Térmica'}</p><p><strong>Kmassada Catering</strong></p><button onclick="window.print()">Imprimir</button>
-<!-- REPAIR BUTTON -->
-<button id="repairBtn" title="Reparar app" onclick="showRepair()">🔧</button>
-<div id="repairModal" onclick="if(event.target===this)closeRepair()">
-  <div id="repairBox">
-    <h3>🔧 Reparar Aplicação</h3>
-    <p>Se algo não está a funcionar bem, escolhe uma opção abaixo:</p>
-    <div class="repair-options">
-      <button class="repair-btn soft" onclick="repairSoft()">🔄 Reiniciar vista (soft)</button>
-      <button class="repair-btn soft" onclick="repairReload()">↺ Recarregar página</button>
-      <button class="repair-btn hard" onclick="repairFull()">⚠️ Limpar tudo e reentrar</button>
-      <button class="repair-btn close-r" onclick="closeRepair()">✕ Fechar</button>
-    </div>
-  </div>
-</div>
-
-<script>
-function showRepair(){ document.getElementById('repairModal').classList.add('show'); }
-function closeRepair(){ document.getElementById('repairModal').classList.remove('show'); }
-function repairSoft(){
-  // Reset all state without reloading
-  try {
-    ge('edetail')?.classList.remove('mob-open','open'); document.querySelector('.elist')?.classList.remove('mob-hidden');
-    document.querySelector('.elist-panel')?.classList.remove('mob-hidden');
-    ge('sidebar')?.classList.remove('sb-open','collapsed');
-    document.querySelector('.overlay')?.classList.remove('show');
-    // Re-detect and apply layout
-    const isMob = window.innerWidth <= 768;
-    setLayout(isMob ? 'mobile' : 'pc');
-    closeRepair();
-    alert('✅ Vista reiniciada!');
-  } catch(e){ alert('Erro: ' + e.message); }
-}
-function repairReload(){
-  if(confirm('Recarregar a página? (sessão mantida)')) location.reload();
-}
-function repairFull(){
-  if(confirm('⚠️ Isto vai limpar a sessão e pedir novo login. Continuar?')){
-    try{ google.accounts.id.disableAutoSelect(); } catch(e){}
-    localStorage.clear();
-    sessionStorage.clear();
-    location.reload();
-  }
-}
-</script>
-
 </body></html>`);w.document.close();}
 
 // SYSTEM
